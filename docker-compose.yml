@@ -1,0 +1,315 @@
+#########################################################
+# Configuraciones comunes
+#########################################################
+
+# Define una configuración base común para los servicios de usuarios
+x-usuarios-base: &usuarios-base
+  image: services/usuarios
+  networks:
+    - traefik-public
+    - default
+  env_file:
+    - .env
+  build:
+    context: ./services/usuarios
+  volumes:
+    - usuarios-db:/app/data
+  labels:
+    - traefik.enable=true
+    - traefik.docker.network=traefik-public
+    - traefik.constraint-label=traefik-public
+    - traefik.http.routers.users_service.entrypoints=http
+    - traefik.http.services.users_service.loadbalancer.server.port=${USUARIOS_PORT}
+    - traefik.http.routers.users_service.rule=PathPrefix(`/api/usuarios`)
+
+x-ajedrez-base: &ajedrez-base
+  image: services/ajedrez
+  networks:
+    - traefik-public
+    - default
+  env_file:
+    - .env
+  build:
+    context: ./services/ajedrez
+    args:
+      - CARGO_BUILD_JOBS=4
+      - CARGO_INCREMENTAL=1
+  volumes:
+    - cargo-cache:/usr/local/cargo/registry
+    - cargo-target:/app/target
+    - ajedrez-db:/app/data
+  command:
+    - /app/ajedrez-server
+
+x-frontend-base: &frontend-base
+  networks:
+    - traefik-public
+    - default
+  env_file:
+    - .env
+  build:
+    context: ./services/frontend
+    args:
+      - VITE_API_URL=${VITE_API_URL}
+      - NODE_ENV=development
+  labels:
+    - traefik.enable=true
+    - traefik.docker.network=traefik-public
+    - traefik.constraint-label=traefik-public
+    - traefik.http.routers.frontend.entrypoints=http
+    - traefik.http.services.frontend.loadbalancer.server.port=80
+    - traefik.http.routers.frontend.rule=PathPrefix(`/`)
+
+services:
+  # mailcatcher:
+  #   image: schickling/mailcatcher
+  #   ports:
+  #     - "8000:1080"
+  #   networks:
+  #     - default
+  
+  # postgres-db:
+  #   image: postgres:12
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+  #     interval: 10s
+  #     retries: 5
+  #     start_period: 30s
+  #     timeout: 10s
+  #   volumes:
+  #     - postgres-db-data:/var/lib/postgresql/data/pgdata
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - PGDATA=/var/lib/postgresql/data/pgdata
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+  #     - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+  #     - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+
+  # adminer:
+  #   image: adminer
+  #   networks:
+  #     - default
+  #   depends_on:
+  #     - postgres-db
+  #   environment:
+  #     - ADMINER_DESIGN=pepa-linha-dark
+  #   ports:
+  #     - "8001:8080"
+
+  # prestart:
+  #   image: services/users
+  #   build:
+  #     context: ./services/users
+  #   networks:
+  #     - traefik-public
+  #     - default
+  #   depends_on:
+  #     postgres-db:
+  #       condition: service_healthy
+  #       restart: true
+  #   command: bash scripts/prestart.sh
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - DOMAIN=${DOMAIN}
+  #     - FRONTEND_HOST=${DOMAIN?Variable not set}
+  #     - ENVIRONMENT=${ENVIRONMENT}
+  #     - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
+  #     - SECRET_KEY=${SECRET_KEY?Variable not set}
+  #     - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
+  #     - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
+  #     - SMTP_HOST=${SMTP_HOST}
+  #     - SMTP_USER=${SMTP_USER}
+  #     - SMTP_PASSWORD=${SMTP_PASSWORD}
+  #     - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
+  #     - POSTGRES_SERVER=db
+  #     - POSTGRES_PORT=${POSTGRES_PORT}
+  #     - POSTGRES_DB=${POSTGRES_DB}
+  #     - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+
+  # users_service:
+  #   image: services/users
+  #   restart: always
+  #   networks:
+  #     - traefik-public
+  #     - default
+  #   depends_on:
+  #     - postgres-db
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - DOMAIN=${DOMAIN}
+  #     - FRONTEND_HOST=${DOMAIN?Variable not set}
+  #     - ENVIRONMENT=${ENVIRONMENT}
+  #     - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
+  #     - SECRET_KEY=${SECRET_KEY?Variable not set}
+  #     - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
+  #     - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
+  #     - SMTP_HOST=${SMTP_HOST}
+  #     - SMTP_USER=${SMTP_USER}
+  #     - SMTP_PASSWORD=${SMTP_PASSWORD}
+  #     - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
+  #     - POSTGRES_SERVER=db
+  #     - POSTGRES_PORT=${POSTGRES_PORT}
+  #     - POSTGRES_DB=${POSTGRES_DB}
+  #     - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+  #     - SENTRY_DSN=${SENTRY_DSN}
+  #   build:
+  #     context: ./services/users
+  #   command:
+  #     - fastapi
+  #     - run
+  #     - --reload
+  #     - "app/main.py"
+  #   develop:
+  #     watch:
+  #       - path: ./services/users
+  #         action: sync
+  #         target: /app
+  #         ignore:
+  #           - ./services/users/.venv
+  #           - .venv
+  #       - path: ./services/users/pyproject.toml
+  #         action: rebuild
+  #   volumes:
+  #     - ./services/users/htmlcov:/app/htmlcov
+  #   labels:
+  #     - traefik.enable=true
+  #     - traefik.docker.network=traefik-public
+  #     - traefik.constraint-label=traefik-public
+  #     - traefik.http.routers.users_service.entrypoints=http
+  #     - traefik.http.services.users_service.loadbalancer.server.port=8000
+  #     - traefik.http.routers.users_service.rule=PathPrefix(`/api/v1/users`)
+  #   ports:
+  #     - "${USER_SERIVICE_PORT}:8000"
+
+  #########################################################
+  # Microservicio de usuarios. Autenticación.
+  #########################################################
+  usuarios:
+    <<: *usuarios-base
+    restart: always
+    ports:
+      - "${USUARIOS_PORT}:${USUARIOS_PORT}"
+    develop:
+      watch:
+        - path: ./services/usuarios
+          action: sync
+          target: /app
+          ignore:
+            - ./services/usuarios/.venv
+        - path: ./services/usuarios/pyproject.toml
+          action: rebuild
+    command:
+      - fastapi
+      - run
+      - --reload
+      - "app/main.py"
+
+  # Usuarios CLI. Una herramienta para interactuar con el microservicio de usuarios.
+  # Ejecutando desde el host:
+  # docker compose run --rm usuarios-cli
+  usuarios-cli:
+    <<: *usuarios-base
+    entrypoint: usuarios_cli
+    command: []
+
+  #########################################################
+  # Microservicio de frontend
+  #########################################################
+  frontend:
+    <<: *frontend-base
+    restart: always
+    develop:
+      watch:
+        - path: ./services/frontend/src
+          action: sync
+          target: /app/src
+        - path: ./services/frontend/public
+          action: sync
+          target: /app/public
+        - path: ./services/frontend/package.json
+          action: rebuild
+    ports:
+      - "${FRONTEND_SERVICE_PORT}:80"
+
+  frontend-regenerate:
+    <<: *frontend-base
+    ports:
+      - "${FRONTEND_SERVICE_PORT}:80"
+    command:
+      - /app/ajedrez-cli
+
+  #########################################################
+  # Ajedrez. Un microservicio para jugar ajedrez.
+  #########################################################
+
+  ajedrez:
+    <<: *ajedrez-base
+    restart: always
+    ports:
+      - "${AJEDREZ_PORT}:${AJEDREZ_PORT}"
+    command:
+      - /app/ajedrez-server
+
+  # Ajedrez CLI. Una herramienta para interactuar con el microservicio de ajedrez.
+  # Ejecutando desde el host:
+  # docker compose run --rm ajedrez-cli
+  ajedrez-cli:
+    <<: *ajedrez-base
+    command:
+      - /app/ajedrez-cli
+
+  proxy:
+    image: traefik:3.0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "${TRAEFIK_PORT}:8080"
+    command:
+      # Enable Docker in Traefik, so that it reads labels from Docker services
+      - --providers.docker
+      # Add a constraint to only use services with the label for this stack
+      - --providers.docker.constraints=Label(`traefik.constraint-label`, `traefik-public`)
+      # Do not expose all Docker services, only the ones explicitly exposed
+      - --providers.docker.exposedbydefault=false
+      # Create an entrypoint "http" listening on port 80
+      # - --entrypoints.http.address=:80
+      # Enable the access log, with HTTP requests
+      - --accesslog
+      # Enable the Traefik log, for configurations and errors
+      - --log
+      # Enable debug logging for local development
+      - --log.level=DEBUG
+      # Enable the Dashboard and API in insecure mode for local development
+      - --api
+      - --api.insecure=true
+      - --api.debug
+      # - --tracing
+    labels:
+      # Enable Traefik for this service, to make it available in the public network
+      - traefik.enable=true
+      - traefik.constraint-label=traefik-public
+    networks:
+      - traefik-public
+      - default
+
+volumes:
+  postgres-db-data:
+  cargo-cache:
+  cargo-target:
+  ajedrez-db:
+  leaderboard-db:
+  usuarios-db:
+
+networks:
+  traefik-public:
+    name: traefik-public
+    # For local dev, don't set an external Traefik network in production
+    external: false

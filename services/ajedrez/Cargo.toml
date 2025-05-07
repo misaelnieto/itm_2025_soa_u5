@@ -1,0 +1,31 @@
+[package]
+name = "ajedrez_svc"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "ajedrez-cli"
+path = "src/bin/ajedrez_cli.rs"
+
+[[bin]]
+name = "ajedrez-server"
+path = "src/bin/ajedrez_server.rs"
+
+[dependencies]
+chrono = { version = "0.4", features = ["serde"] }
+clap = { version = "4.5.34", features = ["cargo"] }
+confik = "0.13.0"
+diesel = { version = "2.2.8", features = ["sqlite", "uuid", "chrono", "returning_clauses_for_sqlite_3_35"] }
+dotenvy = "0.15.7"
+rocket = { version = "0.5.1", features = ["tls", "json", "uuid"] }
+rocket_okapi = {version = "0.9.0", features = ["swagger", "rapidoc", "uuid", "rocket_ws"]}
+serde = { version = "1.0.219", features = ["derive"] }
+tabled = "0.18.0"
+uuid = {version = "1.16.0", features = ["v4", "serde"]}
+schemars = { version = "0.8", features = ["chrono", "uuid1"] }
+ajedrez = { git = "https://github.com/misaelnieto/ajedrez/"}
+# ajedrez = { path = "../../../ajedrez" }
+anyhow = "1.0.97"
+ws = { package = "rocket_ws", version = "0.1.1" }
+diesel_migrations = { version = "2.1.0", features = ["sqlite"] }
+rusqlite = { version = "0.35.0", features = ["bundled"] }
