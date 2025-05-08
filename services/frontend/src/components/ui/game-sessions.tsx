@@ -1,19 +1,15 @@
-import React from "react";
-import {
-  Table,
-  IconButton,
-  Text,
-} from "@chakra-ui/react";
-import { FaPlay } from "react-icons/fa";
+import { IconButton, Table, Text } from "@chakra-ui/react"
+import type React from "react"
+import { FaPlay } from "react-icons/fa"
 
 interface GameSession {
-  id: string;
-  date: string;
+  id: string
+  date: string
 }
 
 interface GameSessionsProps {
-  sessions: GameSession[];
-  onJoinSession: (sessionId: string) => void;
+  sessions: GameSession[]
+  onJoinSession: (sessionId: string) => void
 }
 
 export const GameSessions: React.FC<GameSessionsProps> = ({
@@ -52,5 +48,5 @@ export const GameSessions: React.FC<GameSessionsProps> = ({
         ))}
       </Table.Body>
     </Table.Root>
-  );
-}; 
+  )
+}

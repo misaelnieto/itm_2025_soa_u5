@@ -1,28 +1,32 @@
+/// <reference types="vite/client" />
+
 import {
   MutationCache,
   QueryCache,
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query"
-import { RouterProvider, createRouter } from "@tanstack/react-router"
+import { RouterProvider } from "@tanstack/react-router"
 import React, { StrictMode } from "react"
 import ReactDOM from "react-dom/client"
-import { routeTree } from "./routeTree.gen"
+import { router } from "./routeTree.gen"
 
-import { ApiError, OpenAPI } from "./client"
+import { client as usuarios_client } from "./client/usuarios/client.gen"
+import type { HttpValidationError } from "./client/usuarios/types.gen"
 import { CustomProvider } from "./components/ui/provider"
 
-OpenAPI.BASE = import.meta.env.VITE_API_URL
-OpenAPI.TOKEN = async () => {
-  return localStorage.getItem("access_token") || ""
-}
+usuarios_client.setConfig({
+  baseUrl: import.meta.env.VITE_API_URL,
+})
 
-const handleApiError = (error: Error) => {
-  if (error instanceof ApiError && [401, 403].includes(error.status)) {
+const handleApiError = (error: unknown) => {
+  const err = error as { body?: HttpValidationError; status?: number }
+  if ([401, 403].includes(err.status || 0)) {
     localStorage.removeItem("access_token")
     window.location.href = "/login"
   }
 }
+
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: handleApiError,
@@ -31,13 +35,6 @@ const queryClient = new QueryClient({
     onError: handleApiError,
   }),
 })
-
-const router = createRouter({ routeTree })
-declare module "@tanstack/react-router" {
-  interface Register {
-    router: typeof router
-  }
-}
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <StrictMode>

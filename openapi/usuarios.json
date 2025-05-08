@@ -1,23 +1,24 @@
 ﻿{
   "openapi": "3.1.0",
   "info": {
-    "title": "Usuarios Service",
+    "title": "Usuarios",
+    "description": "Microservicio de usuarios",
     "version": "0.1.0"
   },
   "paths": {
-    "/login/access-token": {
+    "/access-token": {
       "post": {
         "tags": [
-          "login"
+          "auth"
         ],
-        "summary": "Login Access Token",
+        "summary": "Obtains an access token",
         "description": "OAuth2 compatible token login, get an access token for future requests",
-        "operationId": "login_access_token_login_access_token_post",
+        "operationId": "login",
         "requestBody": {
           "content": {
             "application/x-www-form-urlencoded": {
               "schema": {
-                "$ref": "#/components/schemas/Body_login_access_token_login_access_token_post"
+                "$ref": "#/components/schemas/Body_login"
               }
             }
           },
@@ -47,14 +48,14 @@
         }
       }
     },
-    "/login/test-token": {
+    "/test-token": {
       "post": {
         "tags": [
-          "login"
+          "auth"
         ],
-        "summary": "Test Token",
-        "description": "Test access token and return user info",
-        "operationId": "test_token_login_test_token_post",
+        "summary": "Test access token and return user info",
+        "description": "Verifies the access token is correct and returns the related user info.",
+        "operationId": "test_access_token",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -74,14 +75,14 @@
         ]
       }
     },
-    "/login/logout": {
+    "/logout": {
       "post": {
         "tags": [
-          "login"
+          "auth"
         ],
-        "summary": "Logout",
+        "summary": "Logouts the user",
         "description": "Logout user by blacklisting their token",
-        "operationId": "logout_login_logout_post",
+        "operationId": "logout",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -90,7 +91,7 @@
                 "schema": {
                   "additionalProperties": true,
                   "type": "object",
-                  "title": "Response Logout Login Logout Post"
+                  "title": "Response Logout"
                 }
               }
             }
@@ -106,7 +107,7 @@
   },
   "components": {
     "schemas": {
-      "Body_login_access_token_login_access_token_post": {
+      "Body_login": {
         "properties": {
           "grant_type": {
             "anyOf": [
@@ -161,7 +162,7 @@
           "username",
           "password"
         ],
-        "title": "Body_login_access_token_login_access_token_post"
+        "title": "Body_login"
       },
       "HTTPValidationError": {
         "properties": {

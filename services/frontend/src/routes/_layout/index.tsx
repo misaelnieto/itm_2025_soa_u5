@@ -1,8 +1,8 @@
+import GameCard from "@/components/Dashboard/GameCard"
 import { Box, Container, Text } from "@chakra-ui/react"
-import { createFileRoute } from "@tanstack/react-router"
 import { Flex } from "@chakra-ui/react"
-import GameCard from "@/components/Dashboard/GameCard";
-import { FaChess } from "react-icons/fa";
+import { createFileRoute } from "@tanstack/react-router"
+import { FaChess } from "react-icons/fa"
 
 import useAuth from "@/hooks/useAuth"
 
@@ -18,7 +18,7 @@ function Dashboard() {
       <Container maxW="full">
         <Box pt={12} m={4}>
           <Text fontSize="2xl" truncate maxW="sm">
-            Hola, {currentUser?.full_name || currentUser?.email} 👋🏼
+            Hola, {currentUser?.user_id} 👋🏼
           </Text>
           <Text>Estos son los juegos disponibles!</Text>
         </Box>
@@ -26,11 +26,11 @@ function Dashboard() {
 
       <Flex gap="4" wrap="wrap" maxW="500px">
         <GameCard
-            avatarSrc={FaChess}
-            fallbackName="Ajedrez"
-            title="Ajedrez"
-            description="Juega una partida de ajedrez contra los demás usarios."
-          />
+          avatarSrc={FaChess}
+          fallbackName="Ajedrez"
+          title="Ajedrez"
+          description="Juega una partida de ajedrez contra los demás usarios."
+        />
       </Flex>
     </>
   )

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { FaBars } from "react-icons/fa"
 import { FiLogOut } from "react-icons/fi"
 
-import type { UserPublic } from "@/client"
+import type { UserPublic } from "@/client/usuarios"
 import useAuth from "@/hooks/useAuth"
 import {
   DrawerBackdrop,
@@ -64,9 +64,9 @@ const Sidebar = () => {
                   <Text>Log Out</Text>
                 </Flex>
               </Box>
-              {currentUser?.email && (
+              {currentUser?.user_id && (
                 <Text fontSize="sm" p={2} truncate maxW="sm">
-                  Logged in as: {currentUser.email}
+                  Logged in as: {currentUser.user_id}
                 </Text>
               )}
             </Flex>

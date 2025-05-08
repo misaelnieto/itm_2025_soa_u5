@@ -1,14 +1,14 @@
-import React from "react";
-import { Avatar, Button, Card } from "@chakra-ui/react";
+import { Avatar, Button, Card } from "@chakra-ui/react"
 import { useNavigate } from "@tanstack/react-router"
+import type React from "react"
 
 interface GameCardProps {
-  avatarSrc: React.ElementType;
-  fallbackName: string;
-  title: string;
-  description: string;
-  gameRoute: string;
-  leaderboardRoute: string;
+  avatarSrc: React.ElementType
+  fallbackName: string
+  title: string
+  description: string
+  gameRoute: string
+  leaderboardRoute: string
 }
 
 export const GameCard: React.FC<GameCardProps> = ({
@@ -22,12 +22,11 @@ export const GameCard: React.FC<GameCardProps> = ({
   const navigate = useNavigate()
   const onPlayClick = () => {
     navigate({ to: gameRoute })
-  };
+  }
 
   const onLeaderboardViewClick = () => {
     navigate({ to: leaderboardRoute })
-  };
-
+  }
 
   return (
     <Card.Root width="320px">
@@ -47,6 +46,5 @@ export const GameCard: React.FC<GameCardProps> = ({
         <Button onClick={onPlayClick}>Play</Button>
       </Card.Footer>
     </Card.Root>
-  );
-};
-
+  )
+}

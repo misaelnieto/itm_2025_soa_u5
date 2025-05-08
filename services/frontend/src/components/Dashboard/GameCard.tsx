@@ -1,11 +1,11 @@
-import React from "react";
-import { Avatar, Button, Card } from "@chakra-ui/react";
+import { Avatar, Button, Card } from "@chakra-ui/react"
+import type React from "react"
 
 interface GameCardProps {
-  avatarSrc: React.ElementType;
-  fallbackName: string;
-  title: string;
-  description: string;
+  avatarSrc: React.ElementType
+  fallbackName: string
+  title: string
+  description: string
 }
 
 const GameCard: React.FC<GameCardProps> = ({
@@ -16,11 +16,11 @@ const GameCard: React.FC<GameCardProps> = ({
 }) => {
   const onLeaderboardViewClick = () => {
     console.log("View")
-  };
+  }
 
   const onPlayClick = () => {
     console.log("Play")
-  };
+  }
 
   return (
     <Card.Root width="320px">
@@ -40,7 +40,7 @@ const GameCard: React.FC<GameCardProps> = ({
         <Button onClick={onPlayClick}>Play</Button>
       </Card.Footer>
     </Card.Root>
-  );
-};
+  )
+}
 
-export default GameCard;
+export default GameCard

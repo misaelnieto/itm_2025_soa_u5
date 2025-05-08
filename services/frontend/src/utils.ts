@@ -1,4 +1,7 @@
-import type { ApiError } from "./client"
+import type {
+  HttpValidationError,
+  ValidationError,
+} from "./client/usuarios/types.gen"
 import useCustomToast from "./hooks/useCustomToast"
 
 export const emailPattern = {
@@ -44,12 +47,18 @@ export const confirmPasswordRules = (
   return rules
 }
 
-export const handleError = (err: ApiError) => {
+export const handleError = (err: {
+  body?: HttpValidationError
+  status?: number
+}) => {
   const { showErrorToast } = useCustomToast()
-  const errDetail = (err.body as any)?.detail
-  let errorMessage = errDetail || "Ocurrió un error."
-  if (Array.isArray(errDetail) && errDetail.length > 0) {
-    errorMessage = errDetail[0].msg
+  const errDetail = err.body?.detail
+  let errorMessage = "Ocurrió un error."
+
+  if (Array.isArray(errDetail)) {
+    const validationError = errDetail[0] as ValidationError
+    errorMessage = validationError.msg
   }
+
   showErrorToast(errorMessage)
 }

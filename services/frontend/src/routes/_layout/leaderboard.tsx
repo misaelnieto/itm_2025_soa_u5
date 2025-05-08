@@ -1,11 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router'
 import { Table } from "@chakra-ui/react"
+import { createFileRoute } from "@tanstack/react-router"
 // import useAuth from "@/hooks/useAuth"
 
 export const Route = createFileRoute("/_layout/leaderboard")({
   component: Leaderboard,
 })
-
 
 const items = [
   { id: 1, name: "Fulan", category: "Electronics", price: 999.99 },
@@ -15,8 +14,7 @@ const items = [
   { id: 5, name: "Headphones", category: "Accessories", price: 199.99 },
 ]
 
-
-function Leaderboard () {
+function Leaderboard() {
   // const { user: currentUser } = useAuth()
   return (
     <Table.Root size="sm">
@@ -39,4 +37,3 @@ function Leaderboard () {
     </Table.Root>
   )
 }
-
