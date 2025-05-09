@@ -61,131 +61,6 @@ x-frontend-base: &frontend-base
     - traefik.http.routers.frontend.rule=PathPrefix(`/`)
 
 services:
-  # mailcatcher:
-  #   image: schickling/mailcatcher
-  #   ports:
-  #     - "8000:1080"
-  #   networks:
-  #     - default
-  
-  # postgres-db:
-  #   image: postgres:12
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-  #     interval: 10s
-  #     retries: 5
-  #     start_period: 30s
-  #     timeout: 10s
-  #   volumes:
-  #     - postgres-db-data:/var/lib/postgresql/data/pgdata
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     - PGDATA=/var/lib/postgresql/data/pgdata
-  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
-  #     - POSTGRES_USER=${POSTGRES_USER?Variable not set}
-  #     - POSTGRES_DB=${POSTGRES_DB?Variable not set}
-
-  # adminer:
-  #   image: adminer
-  #   networks:
-  #     - default
-  #   depends_on:
-  #     - postgres-db
-  #   environment:
-  #     - ADMINER_DESIGN=pepa-linha-dark
-  #   ports:
-  #     - "8001:8080"
-
-  # prestart:
-  #   image: services/users
-  #   build:
-  #     context: ./services/users
-  #   networks:
-  #     - traefik-public
-  #     - default
-  #   depends_on:
-  #     postgres-db:
-  #       condition: service_healthy
-  #       restart: true
-  #   command: bash scripts/prestart.sh
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     - DOMAIN=${DOMAIN}
-  #     - FRONTEND_HOST=${DOMAIN?Variable not set}
-  #     - ENVIRONMENT=${ENVIRONMENT}
-  #     - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
-  #     - SECRET_KEY=${SECRET_KEY?Variable not set}
-  #     - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
-  #     - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
-  #     - SMTP_HOST=${SMTP_HOST}
-  #     - SMTP_USER=${SMTP_USER}
-  #     - SMTP_PASSWORD=${SMTP_PASSWORD}
-  #     - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
-  #     - POSTGRES_SERVER=db
-  #     - POSTGRES_PORT=${POSTGRES_PORT}
-  #     - POSTGRES_DB=${POSTGRES_DB}
-  #     - POSTGRES_USER=${POSTGRES_USER?Variable not set}
-  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
-
-  # users_service:
-  #   image: services/users
-  #   restart: always
-  #   networks:
-  #     - traefik-public
-  #     - default
-  #   depends_on:
-  #     - postgres-db
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     - DOMAIN=${DOMAIN}
-  #     - FRONTEND_HOST=${DOMAIN?Variable not set}
-  #     - ENVIRONMENT=${ENVIRONMENT}
-  #     - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
-  #     - SECRET_KEY=${SECRET_KEY?Variable not set}
-  #     - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
-  #     - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
-  #     - SMTP_HOST=${SMTP_HOST}
-  #     - SMTP_USER=${SMTP_USER}
-  #     - SMTP_PASSWORD=${SMTP_PASSWORD}
-  #     - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
-  #     - POSTGRES_SERVER=db
-  #     - POSTGRES_PORT=${POSTGRES_PORT}
-  #     - POSTGRES_DB=${POSTGRES_DB}
-  #     - POSTGRES_USER=${POSTGRES_USER?Variable not set}
-  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
-  #     - SENTRY_DSN=${SENTRY_DSN}
-  #   build:
-  #     context: ./services/users
-  #   command:
-  #     - fastapi
-  #     - run
-  #     - --reload
-  #     - "app/main.py"
-  #   develop:
-  #     watch:
-  #       - path: ./services/users
-  #         action: sync
-  #         target: /app
-  #         ignore:
-  #           - ./services/users/.venv
-  #           - .venv
-  #       - path: ./services/users/pyproject.toml
-  #         action: rebuild
-  #   volumes:
-  #     - ./services/users/htmlcov:/app/htmlcov
-  #   labels:
-  #     - traefik.enable=true
-  #     - traefik.docker.network=traefik-public
-  #     - traefik.constraint-label=traefik-public
-  #     - traefik.http.routers.users_service.entrypoints=http
-  #     - traefik.http.services.users_service.loadbalancer.server.port=8000
-  #     - traefik.http.routers.users_service.rule=PathPrefix(`/api/v1/users`)
-  #   ports:
-  #     - "${USER_SERIVICE_PORT}:8000"
-
   #########################################################
   # Microservicio de usuarios. Autenticación.
   #########################################################
@@ -206,6 +81,8 @@ services:
     command:
       - fastapi
       - run
+      - --port
+      - ${USUARIOS_PORT}
       - --reload
       - "app/main.py"
 
@@ -301,12 +178,10 @@ services:
       - default
 
 volumes:
-  postgres-db-data:
   cargo-cache:
   cargo-target:
-  ajedrez-db:
-  leaderboard-db:
   usuarios-db:
+  ajedrez-db:
 
 networks:
   traefik-public:
