@@ -1,19 +1,16 @@
 /// <reference types="vite/client" />
 
-import {
-  MutationCache,
-  QueryCache,
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query"
-import { RouterProvider } from "@tanstack/react-router"
+import { QueryClient, QueryClientProvider, MutationCache, QueryCache } from "@tanstack/react-query"
+import { RouterProvider, createRouter } from "@tanstack/react-router"
 import React, { StrictMode } from "react"
 import ReactDOM from "react-dom/client"
-import { router } from "./routeTree.gen"
+import { routeTree } from "./routeTree.gen"
 
 import { client as usuarios_client } from "./client/usuarios/client.gen"
 import type { HttpValidationError } from "./client/usuarios/types.gen"
 import { CustomProvider } from "./components/ui/provider"
+
+const router = createRouter({ routeTree })
 
 usuarios_client.setConfig({
   baseUrl: import.meta.env.VITE_API_URL,

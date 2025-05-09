@@ -10,10 +10,9 @@ import { InputGroup } from "../components/ui/input-group"
 import { PasswordInput } from "../components/ui/password-input"
 import useAuth, { isLoggedIn } from "../hooks/useAuth"
 import { emailPattern, passwordRules } from "../utils"
-import type { Token as AccessToken } from "@/client/usuarios"
+import type { BodyLogin } from "@/client/usuarios";
 
-
-const Route = createFileRoute("/login")({
+export const Route = createFileRoute("/login")({
   component: Login,
   beforeLoad: async () => {
     if (isLoggedIn()) {
@@ -30,7 +29,7 @@ function Login() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<AccessToken>({
+  } = useForm<BodyLogin>({
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
@@ -39,7 +38,7 @@ function Login() {
     },
   })
 
-  const onSubmit: SubmitHandler<AccessToken> = async (data) => {
+  const onSubmit: SubmitHandler<BodyLogin> = async (data) => {
     if (isSubmitting) return
 
     resetError()
@@ -118,8 +117,8 @@ function Login() {
                 required: "Usuario es requerido",
                 pattern: emailPattern,
               })}
-              placeholder="Email"
-              type="email"
+              placeholder="Nombre de usuario"
+              type="text"
             />
           </InputGroup>
         </Field>

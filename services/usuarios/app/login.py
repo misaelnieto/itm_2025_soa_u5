@@ -3,10 +3,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlmodel import Session, select
+from sqlmodel import select
 
 from app.core.config import settings
-from app.core.db import get_session
 from app.core.deps import SessionDep, get_current_user, reusable_oauth2
 from app.core.security import create_access_token, verify_password
 from app.models import Token, User, UserPublic, TokenBlacklist
