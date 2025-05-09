@@ -14,13 +14,6 @@ x-usuarios-base: &usuarios-base
     context: ./services/usuarios
   volumes:
     - usuarios-db:/app/data
-  labels:
-    - traefik.enable=true
-    - traefik.docker.network=traefik-public
-    - traefik.constraint-label=traefik-public
-    - traefik.http.routers.users_service.entrypoints=http
-    - traefik.http.services.users_service.loadbalancer.server.port=${USUARIOS_PORT}
-    - traefik.http.routers.users_service.rule=PathPrefix(`/api/usuarios`)
 
 x-ajedrez-base: &ajedrez-base
   image: services/ajedrez
@@ -41,24 +34,8 @@ x-ajedrez-base: &ajedrez-base
   command:
     - /app/ajedrez-server
 
-x-frontend-base: &frontend-base
-  networks:
-    - traefik-public
-    - default
-  env_file:
-    - .env
-  build:
-    context: ./services/frontend
-    args:
-      - VITE_API_URL=${VITE_API_URL}
-      - NODE_ENV=development
-  labels:
-    - traefik.enable=true
-    - traefik.docker.network=traefik-public
-    - traefik.constraint-label=traefik-public
-    - traefik.http.routers.frontend.entrypoints=http
-    - traefik.http.services.frontend.loadbalancer.server.port=80
-    - traefik.http.routers.frontend.rule=PathPrefix(`/`)
+
+
 
 services:
   #########################################################
@@ -85,6 +62,13 @@ services:
       - ${USUARIOS_PORT}
       - --reload
       - "app/main.py"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.usuarios.entrypoints=http
+      - traefik.http.services.usuarios.loadbalancer.server.port=${USUARIOS_PORT}
+      - traefik.http.routers.usuarios.rule=PathPrefix(`/api/usuarios`)
 
   # Usuarios CLI. Una herramienta para interactuar con el microservicio de usuarios.
   # Ejecutando desde el host:
@@ -98,7 +82,17 @@ services:
   # Microservicio de frontend
   #########################################################
   frontend:
-    <<: *frontend-base
+    image: services/usuarios
+    networks:
+      - traefik-public
+      - default
+    env_file:
+      - .env
+    build:
+      context: ./services/frontend
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+        - NODE_ENV=development
     restart: always
     develop:
       watch:
@@ -112,13 +106,15 @@ services:
           action: rebuild
     ports:
       - "${FRONTEND_SERVICE_PORT}:80"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.frontend.entrypoints=http
+      - traefik.http.services.frontend.loadbalancer.server.port=80
+      - traefik.http.routers.frontend.rule=PathPrefix(`/`)
 
-  frontend-regenerate:
-    <<: *frontend-base
-    ports:
-      - "${FRONTEND_SERVICE_PORT}:80"
-    command:
-      - /app/ajedrez-cli
+
 
   #########################################################
   # Ajedrez. Un microservicio para jugar ajedrez.
