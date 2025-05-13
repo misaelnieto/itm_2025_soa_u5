@@ -1,7 +1,8 @@
 import { Container, Image, Input, Text } from "@chakra-ui/react"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 import { type SubmitHandler, useForm } from "react-hook-form"
-import { FiLock, FiMail } from "react-icons/fi"
+import { FiLock, FiUser } from "react-icons/fi"
+import { Theme } from "@chakra-ui/react"
 
 import Logo from "../../public/assets/images/itm-logo-vertical.svg"
 import { Button } from "../components/ui/button"
@@ -9,7 +10,7 @@ import { Field } from "../components/ui/field"
 import { InputGroup } from "../components/ui/input-group"
 import { PasswordInput } from "../components/ui/password-input"
 import useAuth, { isLoggedIn } from "../hooks/useAuth"
-import { emailPattern, passwordRules } from "../utils"
+import {passwordRules } from "../utils"
 import type { BodyLogin } from "@/client/usuarios";
 
 export const Route = createFileRoute("/login")({
@@ -51,7 +52,7 @@ function Login() {
   }
 
   return (
-    <>
+    <Theme appearance="light">
       <Container
         as="form"
         onSubmit={handleSubmit(onSubmit)}
@@ -110,12 +111,11 @@ function Login() {
           invalid={!!errors.username}
           errorText={errors.username?.message || !!error}
         >
-          <InputGroup w="100%" startElement={<FiMail />}>
+          <InputGroup w="100%" startElement={<FiUser />}>
             <Input
               id="username"
               {...register("username", {
                 required: "Usuario es requerido",
-                pattern: emailPattern,
               })}
               placeholder="Nombre de usuario"
               type="text"
@@ -133,6 +133,6 @@ function Login() {
           Iniciar sesión
         </Button>
       </Container>
-    </>
+    </Theme>
   )
 }

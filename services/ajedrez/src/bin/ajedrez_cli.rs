@@ -23,7 +23,8 @@ fn main() {
         .version("0.1")
         .about("This is the Ajedrez command line utility")
         .next_line_help(true)
-        .subcommand(Command::new("init").about("Initialize the database"))
+        .subcommand(Command::new("settings").about("Muestra la configuración actual"))
+        .subcommand(Command::new("init").about("Inicializa la base de datos de ajedrez"))
         .subcommand(Command::new("create_session").about("Creates a new chess session"))
         .subcommand(Command::new("list").about("Lists the chess sessions"))
         .subcommand(
@@ -69,6 +70,9 @@ fn main() {
         .get_matches();
 
     match matches.subcommand() {
+        Some(("config", _)) => {
+            println!("Configuraciones .....");
+        }
         Some(("init", _)) => {
             let connection = &mut establish_connection();
             cmd_init_db(connection);

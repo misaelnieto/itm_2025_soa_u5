@@ -48,3 +48,5 @@ export const GameCard: React.FC<GameCardProps> = ({
     </Card.Root>
   )
 }
+
+export default GameCard

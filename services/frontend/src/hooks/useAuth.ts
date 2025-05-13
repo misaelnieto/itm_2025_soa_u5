@@ -23,7 +23,15 @@ const useAuth = () => {
   const { data: user } = useQuery<UserPublic, Error>({
     queryKey: ["currentUser"],
     queryFn: async () => {
-      const response = await testAccessToken()
+      const token =localStorage.getItem("access_token")
+      if (!token) {
+        throw new Error("No access token found")
+      }
+      const response = await testAccessToken({
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
       if (!response.data) {
         throw new Error("No user data received")
       }

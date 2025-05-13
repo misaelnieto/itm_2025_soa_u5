@@ -124,8 +124,8 @@ sequenceDiagram
 
 - Abre una terminal
 - Ejecuta `docker compose watch usuarios` para arrancar el microservicio de usuarios en un contenedor Docker.
-- Ejecuta ` docker compose run --rm usuarios-cli` para arrancar la CLI de administración de usuarios en un contenedor Docker.
-- Ejecuta `docker compose run --rm usuarios-cli dump-openapi | Out-File -Encoding UTF8 openapi/usuarios.json` para generar la documentación de la API en formato OpenAPI y guardarla en archivo `openapi/usuarios.json`. Esto sera útil para regenerar el cliente de la API de usuarios en el frontend. (Nota: si usas mac o Linux, usa el comando de redireccionamiento `>` en lugar de `| Out-File -Encoding UTF8`).
+- Ejecuta `docker compose run --interactive --rm usuarios-cli` para arrancar la CLI de administración de usuarios en un contenedor Docker.
+- Ejecuta `docker compose run --interactive --rm usuarios-cli dump-openapi | Out-File -Encoding UTF8 openapi/usuarios.json` para generar la documentación de la API en formato OpenAPI y guardarla en archivo `openapi/usuarios.json`. Esto sera útil para regenerar el cliente de la API de usuarios en el frontend. (Nota: si usas mac o Linux, usa el comando de redireccionamiento `>` en lugar de `| Out-File -Encoding UTF8`).
 - 
 
 
