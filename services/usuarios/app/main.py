@@ -33,4 +33,7 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(login_router)
+app.include_router(
+    login_router,
+    prefix='/api/usuarios'
+)

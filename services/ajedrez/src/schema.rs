@@ -25,7 +25,4 @@ diesel::table! {
 
 diesel::joinable!(leaderboard -> sessions (session_id));
 
-diesel::allow_tables_to_appear_in_same_query!(
-    leaderboard,
-    sessions,
-);
+diesel::allow_tables_to_appear_in_same_query!(leaderboard, sessions,);

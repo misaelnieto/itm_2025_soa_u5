@@ -1,14 +1,16 @@
-use crate::models::{AjedrezSession, AjedrezSessionNew, AjedrezSessionState, MoveOutcome, MoveRequest, MoveResponse};
+use crate::models::{
+    AjedrezSession, AjedrezSessionNew, AjedrezSessionState, MoveOutcome, MoveRequest, MoveResponse,
+};
 use crate::schema::sessions::dsl::*;
 use ajedrez::{BoardAsFEN, Color, FENStringParsing, INITIAL_FEN_BOARD, Move};
+use anyhow::anyhow;
+use anyhow::{Context, Result};
 use chrono::Utc;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 use dotenvy::dotenv;
 use std::env;
 use std::str::FromStr;
-use anyhow::{Context, Result};
-use anyhow::anyhow;
 
 fn generate_pgn() -> String {
     // Get the current date in "YYYY.MM.DD" format
@@ -29,7 +31,7 @@ pub fn establish_connection() -> SqliteConnection {
     dotenv().ok();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    
+
     SqliteConnection::establish(&database_url)
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
 }
@@ -174,7 +176,10 @@ pub fn make_movement(db_connection: &mut SqliteConnection, request: MoveRequest)
     }
 }
 
-pub fn get_session_state(db_connection: &mut SqliteConnection, session_id: i32) -> Result<AjedrezSessionState> {
+pub fn get_session_state(
+    db_connection: &mut SqliteConnection,
+    session_id: i32,
+) -> Result<AjedrezSessionState> {
     // Query the session
     let game_session = sessions
         .filter(id.eq(session_id))
@@ -185,14 +190,15 @@ pub fn get_session_state(db_connection: &mut SqliteConnection, session_id: i32) 
         .ok_or_else(|| anyhow!("Session does not exist"))?;
 
     // Load the game state
-    let board = game_session
-        .fen_state
-        .parse_fen()
-        .with_context(|| format!("Can't load the board state from database: {}", game_session.fen_state))?;
+    let board = game_session.fen_state.parse_fen().with_context(|| {
+        format!(
+            "Can't load the board state from database: {}",
+            game_session.fen_state
+        )
+    })?;
 
     Ok(AjedrezSessionState {
         db_state: game_session,
         board,
     })
 }
-

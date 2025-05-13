@@ -6,7 +6,32 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/access-token": {
+    "/api/usuarios/status": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Estatus del API de usuarios",
+        "description": "Reporta el estatus interno del API de usuarios",
+        "operationId": "api_status",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/usuarios/login": {
       "post": {
         "tags": [
           "auth"
@@ -48,7 +73,7 @@
         }
       }
     },
-    "/test-token": {
+    "/api/usuarios/test-token": {
       "post": {
         "tags": [
           "auth"
@@ -75,7 +100,7 @@
         ]
       }
     },
-    "/logout": {
+    "/api/usuarios/logout": {
       "post": {
         "tags": [
           "auth"

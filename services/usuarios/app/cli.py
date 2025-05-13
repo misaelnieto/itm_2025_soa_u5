@@ -4,7 +4,7 @@ from typing import Optional
 
 import typer
 from app.core.config import settings as app_settings
-from app.core.db import create_db_and_tables, get_session
+from app.core.db import create_db_and_tables, get_db_session
 from app.core.security import get_password_hash
 from app.main import app as fastapi_app
 from app.models import User
@@ -31,7 +31,7 @@ def ls():
     table.add_column("Active", style="magenta")
     table.add_column("Hashed Password", style="yellow")
 
-    session = next(get_session())
+    session = next(get_db_session())
     statement = select(User)
     users = session.exec(statement).all()
 
@@ -46,7 +46,7 @@ def _query_user(username: str):
     """
     Comprueba si un usuario existe
     """
-    session = next(get_session())
+    session = next(get_db_session())
     statement = select(User).where(User.user_id == username)
     return session.exec(statement).first()
 
@@ -57,7 +57,7 @@ def add():
     Añade un nuevo usuario
     """
     username = typer.prompt("Nombre del usuario")
-    session = next(get_session())
+    session = next(get_db_session())
 
     if _query_user(username):
         print(f"[red]Error: El usuario {username} ya existe[/red]")
@@ -77,7 +77,7 @@ def update():
     Actualiza un usuario
     """
     username = typer.prompt("Nombre del usuario")
-    session = next(get_session())
+    session = next(get_db_session())
 
     # Get user from the same session
     statement = select(User).where(User.user_id == username)
@@ -101,7 +101,7 @@ def delete():
     Elimina un usuario
     """
     username = typer.prompt("Nombre del usuario")
-    session = next(get_session())
+    session = next(get_db_session())
     # Check if user exists
     statement = select(User).where(User.user_id == username)
     user = session.exec(statement).first()

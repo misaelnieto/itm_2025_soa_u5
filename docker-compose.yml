@@ -32,9 +32,8 @@ x-ajedrez-base: &ajedrez-base
     - cargo-target:/app/target
     - ajedrez-db:/app/data
   command:
+    - RUST_LOG=info
     - /app/ajedrez-server
-
-
 
 
 services:
@@ -124,9 +123,27 @@ services:
     <<: *ajedrez-base
     restart: always
     ports:
-      - "${AJEDREZ_PORT}:${AJEDREZ_PORT}"
+      - "${AJEDREZ_PORT}:8000"
+    develop:
+      watch:
+        - path: ./services/ajedrez
+          action: sync
+          target: /app
+          ignore:
+            - ./services/ajedrez/.venv
+            - ./services/ajedrez/tests
+        - path: ./services/ajedrez/pyproject.toml
+          action: rebuild
+
     command:
       - /app/ajedrez-server
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.ajedrez.entrypoints=http
+      - traefik.http.services.ajedrez.loadbalancer.server.port=7777
+      - traefik.http.routers.ajedrez.rule=PathPrefix(`/api/ajedrez`)
 
   # Ajedrez CLI. Una herramienta para interactuar con el microservicio de ajedrez.
   # Ejecutando desde el host:

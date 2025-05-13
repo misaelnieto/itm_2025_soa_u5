@@ -4,7 +4,7 @@ from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 
 from app.core.config import settings
-from app.core.db import get_session
+from app.core.db import get_db_session
 from app.main import app
 from tests.utils.user import create_test_user
 
@@ -28,7 +28,7 @@ def client_fixture(session: Session):
     def get_test_session():
         yield session
 
-    app.dependency_overrides[get_session] = get_test_session
+    app.dependency_overrides[get_db_session] = get_test_session
     with TestClient(app) as client:
         yield client
     app.dependency_overrides.clear()

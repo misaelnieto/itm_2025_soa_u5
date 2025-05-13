@@ -1,3 +1,4 @@
+use crate::schema::{leaderboard, sessions};
 use ajedrez::ChessBoard;
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
@@ -7,7 +8,6 @@ use rocket_okapi::okapi::schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use tabled::Tabled;
-use crate::schema::{sessions, leaderboard};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SessionState {

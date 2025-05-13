@@ -6,29 +6,41 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import select
 
 from app.core.config import settings
-from app.core.deps import SessionDep, get_current_user, reusable_oauth2
+from app.core.deps import DbSessionDep, get_current_user, reusable_oauth2
 from app.core.security import create_access_token, verify_password
-from app.models import Token, User, UserPublic, TokenBlacklist
+from app.models import AuthToken, User, UserPublic, TokenBlacklist
 
 router = APIRouter(tags=["auth"])
 
 
+@router.get(
+    "/status",
+    operation_id="api_status",
+    summary="Estatus del API de usuarios",
+    description="Reporta el estatus interno del API de usuarios"
+)
+def api_status(session:DbSessionDep, current_user: Annotated[User, Depends(get_current_user)],):
+    return {
+        "database_session": session.info,
+        "user_info": current_user,
+    }
+
 @router.post(
-    "/access-token",
-    response_model=Token,
+    "/login",
+    response_model=AuthToken,
     operation_id="login",
     summary="Obtains an access token",
 )
 def login_access_token(
-    session: SessionDep,
+    db_session: DbSessionDep,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-) -> Token:
+) -> AuthToken:
     """
     OAuth2 compatible token login, get an access token for future requests
     """
     # Get user by user_id
     statement = select(User).where(User.user_id == form_data.username)
-    user = session.exec(statement).first()
+    user = db_session.exec(statement).first()
 
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect user ID or password")
@@ -41,7 +53,7 @@ def login_access_token(
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(user.id, expires_delta=access_token_expires)
 
-    return Token(access_token=access_token)
+    return AuthToken(access_token=access_token)
 
 
 @router.post(
@@ -61,7 +73,7 @@ def test_token(
 
 @router.post("/logout", operation_id="logout", summary="Logouts the user")
 def logout(
-    session: SessionDep,
+    session: DbSessionDep,
     current_user: Annotated[User, Depends(get_current_user)],
     token: Annotated[str, Depends(reusable_oauth2)],
 ) -> dict:

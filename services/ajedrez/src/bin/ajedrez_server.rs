@@ -1,41 +1,47 @@
+use ajedrez_svc::models::{AjedrezSession, SessionPlayers};
+use log::info;
+use rocket::Config;
 use rocket::serde::uuid::Uuid;
 use rocket::{get, post, serde::json::Json};
 use rocket_okapi::settings::UrlObject;
 use rocket_okapi::{openapi, openapi_get_routes, rapidoc::*, swagger_ui::*};
 use ws;
-use ajedrez_svc::models::{SessionPlayers, AjedrezSession};
 
 /// # Create new chess Session
-#[openapi(tag = "Ajedrez")]
-#[post("/api/v1/sessions", data = "<players>")]
+#[openapi(tag = "Ajedrez", operation_id = "create")]
+#[post("/api/ajedrez/sessions", data = "<players>")]
 fn api_create_session(players: Json<SessionPlayers>) -> Json<AjedrezSession> {
     let db_connection = &mut ajedrez_svc::db::establish_connection();
-    Json(ajedrez_svc::db::create_session(db_connection, players.white_player, players.black_player))
+    Json(ajedrez_svc::db::create_session(
+        db_connection,
+        players.white_player,
+        players.black_player,
+    ))
 }
 
-
 /// # List sessions
-#[openapi(tag = "Ajedrez")]
-#[get("/api/v1/sessions")]
+#[openapi(tag = "Ajedrez", operation_id = "list")]
+#[get("/api/ajedrez/sessions")]
 fn api_list_sessions() -> Json<std::vec::Vec<AjedrezSession>> {
     let db_connection = &mut ajedrez_svc::db::establish_connection();
     Json(ajedrez_svc::db::load_sessions(db_connection))
 }
 
-
 // # Chess session websocket for playing
-#[openapi(tag = "Ajedrez")]
-#[get("/api/v1/sessions/<_session_uid>")]
+#[openapi(tag = "Ajedrez", operation_id = "open")]
+#[get("/api/ajedrez/sessions/<_session_uid>")]
 fn api_session_websocket(ws: ws::WebSocket, _session_uid: Uuid) -> ws::Channel<'static> {
     use rocket::futures::{SinkExt, StreamExt};
 
-    ws.channel(move |mut stream| Box::pin(async move {
-        while let Some(message) = stream.next().await {
-            let _ = stream.send(message?).await;
-        }
+    ws.channel(move |mut stream| {
+        Box::pin(async move {
+            while let Some(message) = stream.next().await {
+                let _ = stream.send(message?).await;
+            }
 
-        Ok(())
-    }))
+            Ok(())
+        })
+    })
 }
 
 #[openapi(tag = "Ajedrez")]
@@ -43,20 +49,26 @@ fn api_session_websocket(ws: ws::WebSocket, _session_uid: Uuid) -> ws::Channel<'
 fn echo_channel(ws: ws::WebSocket) -> ws::Channel<'static> {
     use rocket::futures::{SinkExt, StreamExt};
 
-    ws.channel(move |mut stream| Box::pin(async move {
-        while let Some(message) = stream.next().await {
-            let _ = stream.send(message?).await;
-        }
+    ws.channel(move |mut stream| {
+        Box::pin(async move {
+            while let Some(message) = stream.next().await {
+                let _ = stream.send(message?).await;
+            }
 
-        Ok(())
-    }))
+            Ok(())
+        })
+    })
 }
 
-
-
 #[rocket::main]
-async fn main() {
-    let launch_result = rocket::build()
+async fn main() -> Result<(), rocket::Error> {
+    env_logger::init();
+    let config = Config {
+        port: 7777,
+        ..Config::debug_default()
+    };
+    info!("Arrancando el servidor de ajedrez");
+    let _server = rocket::custom(&config)
         .mount(
             "/",
             openapi_get_routes![
@@ -89,9 +101,7 @@ async fn main() {
             }),
         )
         .launch()
-        .await;
-    match launch_result {
-        Ok(_) => println!("Rocket shut down gracefully."),
-        Err(err) => println!("Rocket had an error: {}", err),
-    };
+        .await?;
+
+    Ok(())
 }

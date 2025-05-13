@@ -25,7 +25,7 @@ class UserPublic(UserBase):
     id: int
 
 
-class Token(BaseModel):
+class AuthToken(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
