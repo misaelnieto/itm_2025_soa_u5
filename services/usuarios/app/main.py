@@ -20,20 +20,17 @@ app = FastAPI(
     title="Usuarios",
     description="Microservicio de usuarios",
     openapi_url="/openapi.json",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Set up CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # In production, replace with specific origins
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Include routers
-app.include_router(
-    login_router,
-    prefix='/api/usuarios'
-)
+app.include_router(login_router, prefix="/api/usuarios")
