@@ -18,8 +18,13 @@ import { Route as LayoutIndexImport } from './routes/_layout/index'
 import { Route as LayoutSettingsImport } from './routes/_layout/settings'
 import { Route as LayoutLeaderboardImport } from './routes/_layout/leaderboard'
 import { Route as LayoutAdminImport } from './routes/_layout/admin'
+import { Route as JuegosPokemonIndexImport } from './routes/juegos/pokemon/index'
 import { Route as JuegosAjedrezIndexImport } from './routes/juegos/ajedrez/index'
+import { Route as JuegosPokemonLeaderboardImport } from './routes/juegos/pokemon/leaderboard'
 import { Route as JuegosAjedrezLeaderboardImport } from './routes/juegos/ajedrez/leaderboard'
+import { Route as JuegosPokemonComponentsPokemonListComponentImport } from './routes/juegos/pokemon/components/PokemonListComponent'
+import { Route as JuegosPokemonComponentsFindingMatchComponentImport } from './routes/juegos/pokemon/components/FindingMatchComponent'
+import { Route as JuegosPokemonComponentsBattleComponentImport } from './routes/juegos/pokemon/components/BattleComponent'
 
 // Create/Update Routes
 
@@ -58,8 +63,18 @@ const LayoutAdminRoute = LayoutAdminImport.update({
   getParentRoute: () => LayoutRoute,
 } as any)
 
+const JuegosPokemonIndexRoute = JuegosPokemonIndexImport.update({
+  path: '/juegos/pokemon/',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const JuegosAjedrezIndexRoute = JuegosAjedrezIndexImport.update({
   path: '/juegos/ajedrez/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const JuegosPokemonLeaderboardRoute = JuegosPokemonLeaderboardImport.update({
+  path: '/juegos/pokemon/leaderboard',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -67,6 +82,24 @@ const JuegosAjedrezLeaderboardRoute = JuegosAjedrezLeaderboardImport.update({
   path: '/juegos/ajedrez/leaderboard',
   getParentRoute: () => rootRoute,
 } as any)
+
+const JuegosPokemonComponentsPokemonListComponentRoute =
+  JuegosPokemonComponentsPokemonListComponentImport.update({
+    path: '/juegos/pokemon/components/PokemonListComponent',
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const JuegosPokemonComponentsFindingMatchComponentRoute =
+  JuegosPokemonComponentsFindingMatchComponentImport.update({
+    path: '/juegos/pokemon/components/FindingMatchComponent',
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const JuegosPokemonComponentsBattleComponentRoute =
+  JuegosPokemonComponentsBattleComponentImport.update({
+    path: '/juegos/pokemon/components/BattleComponent',
+    getParentRoute: () => rootRoute,
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -104,8 +137,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JuegosAjedrezLeaderboardImport
       parentRoute: typeof rootRoute
     }
+    '/juegos/pokemon/leaderboard': {
+      preLoaderRoute: typeof JuegosPokemonLeaderboardImport
+      parentRoute: typeof rootRoute
+    }
     '/juegos/ajedrez/': {
       preLoaderRoute: typeof JuegosAjedrezIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/juegos/pokemon/': {
+      preLoaderRoute: typeof JuegosPokemonIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/juegos/pokemon/components/BattleComponent': {
+      preLoaderRoute: typeof JuegosPokemonComponentsBattleComponentImport
+      parentRoute: typeof rootRoute
+    }
+    '/juegos/pokemon/components/FindingMatchComponent': {
+      preLoaderRoute: typeof JuegosPokemonComponentsFindingMatchComponentImport
+      parentRoute: typeof rootRoute
+    }
+    '/juegos/pokemon/components/PokemonListComponent': {
+      preLoaderRoute: typeof JuegosPokemonComponentsPokemonListComponentImport
       parentRoute: typeof rootRoute
     }
   }
@@ -123,7 +176,12 @@ export const routeTree = rootRoute.addChildren([
   LoginRoute,
   JuegosIndexRoute,
   JuegosAjedrezLeaderboardRoute,
+  JuegosPokemonLeaderboardRoute,
   JuegosAjedrezIndexRoute,
+  JuegosPokemonIndexRoute,
+  JuegosPokemonComponentsBattleComponentRoute,
+  JuegosPokemonComponentsFindingMatchComponentRoute,
+  JuegosPokemonComponentsPokemonListComponentRoute,
 ])
 
 /* prettier-ignore-end */

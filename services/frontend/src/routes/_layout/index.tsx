@@ -2,7 +2,7 @@ import GameCard from "@/components/ui/game-card"
 import { Box, Container, Text } from "@chakra-ui/react"
 import { Flex } from "@chakra-ui/react"
 import { createFileRoute } from "@tanstack/react-router"
-import { FaChess } from "react-icons/fa"
+import { FaBowlingBall, FaChess } from "react-icons/fa"
 
 import useAuth from "@/hooks/useAuth"
 
@@ -30,6 +30,14 @@ function Dashboard() {
             description="Juega una partida de ajedrez contra los demás usarios."
             gameRoute="/juegos/ajedrez"
             leaderboardRoute="/juegos/ajedrez/leaderboard"
+          />
+          <GameCard
+            avatarSrc={FaBowlingBall}
+            fallbackName="Pokemon"
+            title="Pokemon"
+            description="Juega una partida de pokemon contra los demás usarios."
+            gameRoute="/juegos/pokemon"
+            leaderboardRoute="/juegos/pokemon/leaderboard"
           />
         </Flex>
       </Container>

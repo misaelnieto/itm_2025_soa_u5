@@ -120,39 +120,82 @@ services:
   # Ajedrez. Un microservicio para jugar ajedrez.
   #########################################################
 
-  ajedrez:
-    <<: *ajedrez-base
-    restart: always
+  # ajedrez:
+  #   <<: *ajedrez-base
+  #   restart: always
+  #   ports:
+  #     - "${AJEDREZ_PORT}:8000"
+  #   develop:
+  #     watch:
+  #       - path: ./services/ajedrez
+  #         action: sync
+  #         target: /app
+  #         ignore:
+  #           - ./services/ajedrez/.venv
+  #           - ./services/ajedrez/tests
+  #       - path: ./services/ajedrez/pyproject.toml
+  #         action: rebuild
+
+  #   command:
+  #     - /app/ajedrez-server
+  #   labels:
+  #     - traefik.enable=true
+  #     - traefik.docker.network=traefik-public
+  #     - traefik.constraint-label=traefik-public
+  #     - traefik.http.routers.ajedrez.entrypoints=http
+  #     - traefik.http.services.ajedrez.loadbalancer.server.port=7777
+  #     - traefik.http.routers.ajedrez.rule=PathPrefix(`/api/ajedrez`)
+
+  # # Ajedrez CLI. Una herramienta para interactuar con el microservicio de ajedrez.
+  # # Ejecutando desde el host:
+  # # docker compose run --rm ajedrez-cli
+  # ajedrez-cli:
+  #   <<: *ajedrez-base
+  #   entrypoint: /app/ajedrez-cli
+  #   command: []
+
+  # MongoDB para el servicio de Pokemon
+  pokemon-db:
+    image: mongo
+    networks:
+      - default
+    volumes:
+      - pokemon-db:/data/db
     ports:
-      - "${AJEDREZ_PORT}:8000"
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: pokemon
+  pokemon:
+    image: services/pokemon
+    networks:
+      - traefik-public
+      - default
+    env_file:
+      - .env
+    build:
+      context: ./services/pokemon
+    restart: always
     develop:
       watch:
-        - path: ./services/ajedrez
+        - path: ./services/pokemon/src
           action: sync
-          target: /app
-          ignore:
-            - ./services/ajedrez/.venv
-            - ./services/ajedrez/tests
-        - path: ./services/ajedrez/pyproject.toml
+          target: /app/src
+        - path: ./services/pokemon/package.json
           action: rebuild
-
-    command:
-      - /app/ajedrez-server
+    ports:
+      - "${POKEMON_PORT}:4002"
+    depends_on:
+      - pokemon-db
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
       - traefik.constraint-label=traefik-public
-      - traefik.http.routers.ajedrez.entrypoints=http
-      - traefik.http.services.ajedrez.loadbalancer.server.port=7777
-      - traefik.http.routers.ajedrez.rule=PathPrefix(`/api/ajedrez`)
-
-  # Ajedrez CLI. Una herramienta para interactuar con el microservicio de ajedrez.
-  # Ejecutando desde el host:
-  # docker compose run --rm ajedrez-cli
-  ajedrez-cli:
-    <<: *ajedrez-base
-    entrypoint: /app/ajedrez-cli
-    command: []
+      - traefik.http.routers.pokemon.entrypoints=http
+      - traefik.http.services.pokemon.loadbalancer.server.port=4002
+      - traefik.http.routers.pokemon.rule=PathPrefix(`/pokemon`)
+  
 
   proxy:
     image: traefik:3.0
@@ -196,6 +239,8 @@ volumes:
   cargo-target:
   usuarios-db:
   ajedrez-db:
+  pokemon-db:
+
 
 networks:
   traefik-public:
