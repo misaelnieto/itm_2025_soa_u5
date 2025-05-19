@@ -213,6 +213,8 @@ services:
       - traefik.http.routers.picas-frontend.entrypoints=http
       - traefik.http.services.picas-frontend.loadbalancer.server.port=80
       - traefik.http.routers.picas-frontend.rule=PathPrefix(`/juegos/picas`)
+      - traefik.http.routers.picas-frontend.middlewares=picas-strip
+      - traefik.http.middlewares.picas-strip.stripprefix.prefixes=/juegos/picas
 
 volumes:
   cargo-cache:
