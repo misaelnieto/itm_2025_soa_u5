@@ -191,6 +191,29 @@ services:
       - traefik-public
       - default
 
+#########################################################
+  # Microservicio de picas
+  #########################################################
+  picas-frontend:
+    image: services/picas-frontend
+    networks:
+      - traefik-public
+      - default
+    env_file:
+      - .env
+    build:
+      context: ./services/picas-frontend
+    restart: always
+    ports:
+      - "${PICAS_FRONTEND_SERVICE_PORT}:80" # Cambiar el puerto a PICAS_FRONTEND_SERVICE_PORT cuando haga commit
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.picas-frontend.entrypoints=http
+      - traefik.http.services.picas-frontend.loadbalancer.server.port=80
+      - traefik.http.routers.picas-frontend.rule=PathPrefix(`/juegos/picas`)
+
 volumes:
   cargo-cache:
   cargo-target:

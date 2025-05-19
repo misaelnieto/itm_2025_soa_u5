@@ -1,0 +1,276 @@
+@import url('https://fonts.googleapis.com/css2?family=Lilita+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dosis:wght@200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
+
+.titulo {
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    height: 150px;
+    text-align: center;
+}
+
+.logo-img {
+  width: 150px;
+  height: 100px;
+  object-fit: contain;
+}
+
+h1 {
+    color: #1b4cc9;
+    text-align: center;
+    font-size: 2rem;
+    margin-top: 5px;
+    text-shadow:
+        -1px -1px 0 white,
+         1px -1px 0 white,
+        -1px  1px 0 white,
+         1px  1px 0 white;
+    font-family: "Lilita One", sans-serif;
+    font-style: normal;
+}
+
+body {
+    background-image: linear-gradient(#fa9205, #ffb92d);
+    background-repeat: no-repeat;
+    height: 100vh; /* Asegura que el body tenga la altura de la ventana */
+    margin: 0 10px 0 10px;
+    padding: 0;
+}
+
+.container {
+    display: grid;
+    padding: 5px;
+    grid-template-columns: 30% 50% 20%;
+    grid-template-rows: 100%;
+    gap: 10px;
+    height: calc(100vh - 200px);
+    border-radius: 10px;
+    border: 5px solid #ffbd54;
+    color: white;
+    column-gap: 0;
+}
+
+.container > div {
+    box-sizing: border-box;
+    padding: 5px;
+    text-align: center;
+
+}
+
+.contrincante {
+    width: 100%;
+    border-style: solid;
+    border-color:#ffd683;
+    border-width: 5px;
+    color: rgb(0, 0, 0);
+    background-color: rgba(255, 51, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Asegura que ocupe toda la celda del grid */
+}
+
+.acciones {
+    width: 100%;
+    border-style: solid;
+    border-color:#ffd683;
+    border-width: 5px;
+    color: rgb(0, 0, 0);
+    background-color: rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Asegura que ocupe toda la celda del grid */
+}
+
+.input-group,
+.separador,
+.instrucciones,
+.msj,
+.guess-group {
+  flex-shrink: 0;
+}
+
+.separador {
+    width: 100%;
+    height: 2px; /* grosor de la línea */
+    background-color: #ffd683; /* color del borde */
+    margin-bottom: 10px;
+}
+
+.adivinar{
+    visibility: hidden;
+    width: 100%;
+    color: rgb(0, 0, 0);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0; /* Permite a los hijos hacer overflow correctamente */
+}
+
+.vs-container{
+    min-height: 0; /* Permite a los hijos hacer overflow correctamente */
+    visibility: hidden;
+}
+
+.trys-table, .vs-table {
+    margin-top: 10px;
+    width: 60%;
+    border-color: #FC7C0B;
+    border-style: solid;
+    border-width: 1px;
+    font-size: small;
+    border-collapse: collapse;
+    background-color: rgba(255, 251, 140, 0.416);
+    height: fit-content;
+}
+
+.trys-container, .vs-container {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 10px;    
+    scrollbar-width: thin; /* thin | auto | none */
+    scrollbar-color: #f17212 transparent; /* thumb | track */
+    display:flex;
+    justify-content: center;
+}
+
+#adivina-inputs{
+    margin-top: 5px;
+}
+
+.leaderboard {
+    width: 100%;
+    background-color: black;
+    border-style: solid;
+    border-color:#ffd683;
+    border-width: 5px;
+    color: white;
+}
+
+.leaderboard-content{
+    width:100%;
+}
+
+.leaderboard-table {
+    width: 100%;
+    font-size: small;
+    margin-top: 10px;
+}
+
+#subtitulo{
+    font-family: "Dosis", sans-serif;
+    font-weight: bold;
+}
+
+.instrucciones{
+    margin-top:0;
+}
+
+#quicksand, td {
+    font-family: "Quicksand", sans-serif;
+}
+
+.leaderboard-table th, .trys-table th, .vs-table th{
+    font-family: "Dosis", sans-serif;
+    text-align: center;
+}
+
+.trys-table td, .trys-table th, .vs-table td, .vs-table th{
+    border: 1px solid #FC7C0B;
+}
+
+td, th {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.leaderboard-table td, .leaderboard-table th{
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+
+.trys-table td:nth-child(3), .trys-table th:nth-child(3), .vs-table td:nth-child(3), .vs-table th:nth-child(3){
+    color:#cc0000;
+    font-weight: bold;
+}
+
+.trys-table td:nth-child(4), .trys-table th:nth-child(4), .vs-table td:nth-child(4), .vs-table th:nth-child(4){
+    color: #0a5300;
+    font-weight: bold;
+}
+
+
+.status{
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.input-group, .guess-group {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  align-items: center;
+}
+
+.digit-input {
+  width: 40px;
+  height: 40px;
+  font-size: 1.5rem;
+  text-align: center;
+  border: 2px solid #ffd683;
+  border-radius: 8px;
+}
+
+.lock-in{
+    width: 80px;
+    height: 30px;
+    background-color: #1bab08;
+    color:  white;
+    border-color: #45e92f;
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 8px;
+}
+
+.lock-in:hover {
+    background-color: #1a8d0b;
+    border-color: #34cd20;
+    cursor: pointer;
+}
+
+.lock-in:active {
+    background-color: #1a8d0b;
+    border-color: #34cd20;
+    cursor: pointer;
+    transform: translateY(2px); /* Simula que el botón baja */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2) inset; /* Sombra interna */
+}
+
+.guess-btn{
+    width: 80px;
+    height: 30px;
+    background-color: #0849ab;
+    color:  #ffffff;
+    border-color: #033075;
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 8px;
+    visibility: hidden;
+}
+
+.guess-btn:hover {
+    background-color:#165cc6;
+    border-color:#114ca5;
+    cursor: pointer;
+}
+
+.guess-btn:active{
+    background-color: #276ed8;
+    transform: translateY(2px); /* Simula que el botón baja */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2) inset; /* Sombra interna */
+}

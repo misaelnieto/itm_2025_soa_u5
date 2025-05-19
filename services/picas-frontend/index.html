@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles.css">
+    <title>Frontend picas y fijas</title>
+</head>
+<body>
+
+<div class="pagina">
+    <div class="titulo">
+         <img src="logo2.png" alt="Logo" class="logo-img">
+        <h1 class="title">Picas y fijas</h1>
+    </div>
+
+    <div class="container">
+
+        <div class="contrincante">
+            <p id="subtitulo">Contrincante</p>
+
+            <div class="status" id="quicksand">Status</div>
+
+            <div class="separador"></div>
+
+            <div class="vs-container"> 
+                    <table class="vs-table">
+                        <thead>
+                            <thead>
+                                <tr>
+                                    <th>Intento</th>
+                                    <th>Número</th>
+                                    <th>Picas</th>
+                                    <th>Fijas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                    </table>
+                </div>
+        </div>
+
+        <div class="acciones">
+            <p id="subtitulo">Acciones</p>
+            <p class="instrucciones" id="quicksand"> Elige un número de 5 cifras para que el contrincante adivine.<br>
+            Los números no pueden repetirse. </p>
+            <div class="input-group" id="numero-inputs">
+                <input type="text" maxlength="1" class="digit-input">
+                <input type="text" maxlength="1" class="digit-input">
+                <input type="text" maxlength="1" class="digit-input">
+                <input type="text" maxlength="1" class="digit-input">
+                <input type="text" maxlength="1" class="digit-input">
+                
+                <button class="lock-in">Guardar</button>
+            </div>
+
+            <p class="msj" id="quicksand"></p>
+            <div class="separador"></div>
+
+            <div class="adivinar">
+                <p class="instrucciones" id="quicksand">Adivina el número del contrincante.</p>
+
+                <div class="guess-group" id="adivina-inputs">
+                    <input type="text" maxlength="1" class="digit-input">
+                    <input type="text" maxlength="1" class="digit-input">
+                    <input type="text" maxlength="1" class="digit-input">
+                    <input type="text" maxlength="1" class="digit-input">
+                    <input type="text" maxlength="1" class="digit-input">
+
+                    <button class="guess-btn">Adivinar</button>
+
+                </div>
+
+                <div class="trys-container"> 
+                    <table class="trys-table">
+                        <thead>
+                            <thead>
+                                <tr>
+                                    <th>Intento</th>
+                                    <th>Número</th>
+                                    <th>Picas</th>
+                                    <th>Fijas</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                    </table>
+                </div>
+            </div>  
+
+
+        </div>
+
+        <div class="leaderboard">
+            <p id="subtitulo">Leaderboard</p>
+            <div class="leaderboard-content">
+                <table class="leaderboard-table">
+                    <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Jugador</th>
+                        <th>Puntuación</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    
+    </div>
+</div>
+<script src="script.js"></script>
+
+</body>
+</html>
