@@ -1,8 +1,7 @@
-from flask import Flask, jsonify, request, send_from_directory, render_template
-from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect
+from flask import Flask, jsonify, request, render_template
+from flask_socketio import SocketIO, emit, leave_room
 from game_state import GameState
-from services.deck_handler import PlayerDeckHandler
-from services.score_handler import check_hand, score_hand
+from services.score_handler import score_hand
 import uuid
 
 app = Flask(__name__)
@@ -228,8 +227,5 @@ def draw_cards():
     return jsonify({"drawn_cards": cards})
 
 
-
-
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', debug=True)
-
+    socketio.run(app, host='0.0.0.0', port=80, debug=True,allow_unsafe_werkzeug=True)

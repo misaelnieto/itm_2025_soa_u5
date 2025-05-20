@@ -15,7 +15,7 @@ function includeHTML() {
 
                   // Manually load player_cards.js AFTER inserting player_cards.html
                   let script = document.createElement("script");
-                  script.src = "js/player_cards.js";
+                  script.src = "/juegos/balatro/js/player_cards.js";
                   document.body.appendChild(script);
               })
               .catch(error => console.error("Error loading file:", file, error));

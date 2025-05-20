@@ -1,0 +1,101 @@
+.loadingScreen{
+    position: absolute;
+    z-index: 3;
+    background-color: rgb(40, 40, 85);
+    width: 100%;
+    height: 100vh;
+}
+
+
+.loadingScreen > div{
+    position: relative;
+    width: fit-content;
+    height: fit-content;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+.loadingScreen > div > img{
+    width: 200px;
+    height: 200px;
+}
+
+.loadingScreen > div > h2{
+    color: rgb(255, 180, 18);
+}
+
+
+.opponent{
+    position: absolute;
+    top: 80%;
+    left: 50%;
+    transform: translate(-50%,-100%);
+    z-index: 1;
+    width: 400px;
+    height: fit-content;
+    text-align: center;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    padding: 10px;
+    background-color: rgb(93, 101, 211);
+    box-shadow: 4px 4px 8px rgba(20, 20, 20, 0.767);
+}
+
+
+.stop{
+    position: absolute;
+    top: 99%;
+    left: 99%;
+    transform: translate(-100%,-100%);
+    background-color: red;
+    z-index: 2;
+    width: 300px;
+    padding: 5px;
+    text-align: center;
+    font-size: 1.1rem;
+    border-radius: 5px;
+    box-shadow: 3px 3px 3px rgba(20, 20, 20, 0.767);
+    display: none;
+}
+
+
+
+
+
+
+.game_over{
+    position: absolute;
+    z-index: 6;
+    background-color: rgb(40, 40, 85);
+    width: 100%;
+    height: 100vh;
+    display: none;
+}
+
+
+.game_over > div{
+    position: relative;
+    width: fit-content;
+    height: fit-content;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+.game_over > div > img{
+    width: 200px;
+    height: 200px;
+}
+
+.game_over > div > h2{
+    color: rgb(255, 180, 18);
+}

@@ -1,3 +1,32 @@
+let socket = io();
+let sid = null;
+let turn = 1;
+let proceed_playHand = false;
+let win = "https://media.istockphoto.com/id/1447471637/video/you-win-glitch-4k-video-animation-footage-pixel-message-design-glitch-effect.jpg?s=640x640&k=20&c=JGgJOzzgHAWu33tEMYl-yghunxslgkdZGDHbqCB8KNA=";
+let lose = "https://motionarray.imgix.net/motion-array-3081970-Ib6GvahUCf-high_0014.jpg?w=660&q=60&fit=max&auto=format"
+let tie = "https://media.tenor.com/wyfhYqF1tJIAAAAe/mark-wahlberg-wahlberg.png";
+
+socket.on('connect',()=>{
+    sid = socket.id;
+    console.log("Mi SID: "+sid);
+});
+
+
+
+let loadingScreen = document.getElementsByClassName('loadingScreen')[0];
+let opponent = document.getElementsByClassName('opponent')[0];
+let stop_notification = document.getElementsByClassName('stop')[0];
+let final = document.getElementsByClassName('game_over')[0];
+let image_final = document.getElementsByClassName('final-i')[0];
+let h2_final = document.getElementsByClassName('final-h2')[0];
+
+
+socket.on('update_turn', (data)=>{
+    opponent.textContent = `It's player ${data.current_turn}'s turn`;
+});
+
+
+
 let deck;
 let suits;
 let ranks;
@@ -24,6 +53,8 @@ const cardRank = {
     '2': 2
 };
 
+
+// This functions is running at the beggin
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById("play-hand-btn").addEventListener('click', () => {
         playHand();
@@ -32,9 +63,25 @@ document.addEventListener('DOMContentLoaded', function () {
         discardCards();
         drawCardsForP1();
     });
-    last_score = window.score;  
+
     
-    loadCards();
+    window.playerHand = null;
+    window.score = 0;
+    window.last_score = 0
+
+    socket.on('matched', (data)=>{
+
+        window.playerHand = data.player_hand;
+        window.last_score = window.score;  
+        
+
+        loadingScreen.remove();
+        console.log(`Matched!! loading the room ${data.room}`);
+        // Before loading cards, we should wait for someone
+
+        loadCards();
+    });
+    
 });
 
 // Creates the initial player's hand
@@ -47,7 +94,7 @@ function loadCards() {
     });
 }
 
-// Removes a card from the deck and inserts it into the player's hand
+// Just draw cards
 function drawCard(card) {
     let card_container = document.getElementById('card-container');
 
@@ -81,23 +128,56 @@ function drawCard(card) {
 
 async function  playHand() {
     if (selectedCardsTags.length > 0) {
-        extractCardsToString();
-        selectedCards.sort((a, b) => getCardRank(b) - getCardRank(a));
 
+        // Parses selectCards as an string
+        extractCardsToString();
+
+
+        // Orders the card by the biggest rank to the smallets rank
+        // Example:  A A J 9 9 7 3 
+        selectedCards.sort((a, b) => getCardRank(b) - getCardRank(a));
+        
+
+        
         await getScore(selectedCards);
-        selectedCardsTags.forEach(selectedCard => {
-            document.querySelectorAll('.poker-card').forEach(cardElement => {
-                let cardTitle = cardElement.querySelector('.card-title').textContent.trim();
-                if (cardTitle === selectedCard.textContent) {
-                    cardElement.remove();
-                }
+
+        // At the moment, the cards werent taken off from the player's hand, so
+        // if there's not the player's turn, nothing can happend
+
+        if(proceed_playHand==true){
+
+            // This part of the code verify all the selected cards and then remove that ones.
+            selectedCardsTags.forEach(selectedCard => {
+                document.querySelectorAll('.poker-card').forEach(cardElement => {
+                    let cardTitle = cardElement.querySelector('.card-title').textContent.trim();
+                    if (cardTitle === selectedCard.textContent) {
+                        cardElement.remove();
+                    }
+                });
             });
-        });
-        console.log(selectedCardsTags.length);
-        await drawCardsForP1();
-        console.log("termino draw");
-        getGameState();
-        console.log("termina gamestate");
+
+            console.log(selectedCardsTags.length);
+
+            // Aqui deberia de dibujar 3 cartas random
+            await drawCardsForP1();
+
+
+            console.log("termino draw");
+            await getGameState();
+            console.log("termina gamestate");
+        }
+        else{
+            // Levantar un mensaje diciendo que no es tu turno
+            stop_notification.style.display = 'inline-block';
+
+            setTimeout(()=>{
+                stop_notification.style.display = 'none';
+            },1500);
+        }
+
+
+
+        // The selected cars shouldnt be selected in the next turn
         selectedCardsTags = [];
     }
 }
@@ -121,30 +201,43 @@ function extractCardsToString(){
     });
 }
 
-function getScore(playedCards){
-    return fetch('/juegos/balatro/play_hand', {
+async function getScore(playedCards){
+    return fetch('/juegos/balatro-backend/play_hand', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+            sid:sid,
             cards: playedCards
         })
     })
     .then(response => response.json())
     .then(data => {
-        // console.log("Hand Played:", data.hand_played);
-        // console.log("Received:", data.received);
-        // console.log("Score:", data.score);
-        // console.log("Valid Cards:", data.valid_cards);
+
+        if(data.message){
+            console.log(data.message);
+            proceed_playHand = false;   // The player can't do anything
+        }
+        else{
+            // console.log("Hand Played:", data.hand_played);
+            // console.log("Received:", data.received);
+            // console.log("Score:", data.score);
+            // console.log("Valid Cards:", data.valid_cards);
+
+            console.log('Si era tu turno weeee');
+            // Esto no aplica a los dos jugadores, solo al jugador actual, por eso no se pone en un socket
+            proceed_playHand = true; 
+        }
+        
     })
     .catch(error => {
         console.error("Error:", error);
     });    
 }
 
-function drawCardsForP1() {
-    return fetch('/juegos/balatro/p1_draw_cards')
+async function drawCardsForP1() {
+    return fetch(`/juegos/balatro-backend/draw_cards?sid=${sid}`)
         .then(response => {
             if (!response.ok) throw new Error('Network response was not ok');
             return response.json();
@@ -161,7 +254,7 @@ function drawCardsForP1() {
 
 function getGameState(){
     // Make a GET request
-    fetch('/juegos/balatro/game_state')
+    fetch(`/juegos/balatro-backend/game_state?sid=${sid}`)
     .then(response => {
     if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -198,7 +291,7 @@ function discardCards(){
 }
 
 function discardInAPI(cards){
-    fetch('/juegos/balatro/p1_discard', {
+    fetch(`/juegos/balatro-backend/discard?sid=${sid}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -215,3 +308,25 @@ function discardInAPI(cards){
         console.error("Error:", error);
     });    
 }
+
+
+
+socket.on('game_over',(data)=>{
+    
+    if(data.win == 0){
+        image_final.src = lose;
+    }
+    
+    if(data.win== 1){
+        image_final.src = win;
+    }
+
+    if(data.win==2){
+        image_final.src = tie;
+    }
+
+    h2_final.textContent = data.score;
+
+    final.style.display = 'inline-block';
+
+});
