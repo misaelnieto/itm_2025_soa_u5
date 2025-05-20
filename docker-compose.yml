@@ -193,7 +193,7 @@ services:
 
 #########################################################
   # Microservicio de picas
-  #########################################################
+#########################################################
   picas-frontend:
     image: services/picas-frontend
     networks:
@@ -216,11 +216,18 @@ services:
       - traefik.http.routers.picas-frontend.middlewares=picas-strip
       - traefik.http.middlewares.picas-strip.stripprefix.prefixes=/juegos/picas
 
+#puerto 8096 para el backend 
+
+
+
+
+
 volumes:
   cargo-cache:
   cargo-target:
   usuarios-db:
   ajedrez-db:
+#agregar db para picas
 
 networks:
   traefik-public:
