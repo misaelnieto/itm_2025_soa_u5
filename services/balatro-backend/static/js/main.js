@@ -1,6 +1,6 @@
 function includeHTML() {
   let elements = document.querySelectorAll("[w3-include-html]");
-
+console.log("cargo el main.js");
   elements.forEach(el => {
       let file = el.getAttribute("w3-include-html");
 
@@ -15,7 +15,7 @@ function includeHTML() {
 
                   // Manually load player_cards.js AFTER inserting player_cards.html
                   let script = document.createElement("script");
-                  script.src = "js/player_cards.js";
+                  script.src = "/js/player_cards.js";
                   document.body.appendChild(script);
               })
               .catch(error => console.error("Error loading file:", file, error));

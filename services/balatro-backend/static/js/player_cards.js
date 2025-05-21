@@ -1,4 +1,6 @@
-let socket = io();
+let socket = io('/juegos/balatro-backend', {
+    path: '/juegos/balatro-backend/socket.io'
+});
 let sid = null;
 let turn = 1;
 let proceed_playHand = false;
@@ -56,6 +58,7 @@ const cardRank = {
 
 // This functions is running at the beggin
 document.addEventListener('DOMContentLoaded', function () {
+    console.log("player_cards.js cargado")
     document.getElementById("play-hand-btn").addEventListener('click', () => {
         playHand();
     });
@@ -202,7 +205,7 @@ function extractCardsToString(){
 }
 
 async function getScore(playedCards){
-    return fetch('/play_hand', {
+    return fetch('/juegos/balatro-backend/play_hand', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -237,7 +240,7 @@ async function getScore(playedCards){
 }
 
 async function drawCardsForP1() {
-    return fetch(`/draw_cards?sid=${sid}`)
+    return fetch(`/juegos/balatro-backend/draw_cards?sid=${sid}`)
         .then(response => {
             if (!response.ok) throw new Error('Network response was not ok');
             return response.json();
@@ -254,7 +257,7 @@ async function drawCardsForP1() {
 
 function getGameState(){
     // Make a GET request
-    fetch(`/game_state?sid=${sid}`)
+    fetch(`/juegos/balatro-backend/game_state?sid=${sid}`)
     .then(response => {
     if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -291,7 +294,7 @@ function discardCards(){
 }
 
 function discardInAPI(cards){
-    fetch(`/discard?sid=${sid}`, {
+    fetch(`/juegos/balatro-backend/discard?sid=${sid}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

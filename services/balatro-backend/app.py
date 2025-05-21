@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, render_template
-from flask_socketio import SocketIO, emit, leave_room
+from flask_socketio import SocketIO, emit, join_room, leave_room
 from game_state import GameState
 from services.score_handler import score_hand
 import uuid
@@ -9,54 +9,45 @@ app.config['SECRET_KEY'] = 'secret'
 socketio = SocketIO(app)
 game_state = GameState()
 
-
 waiting_player = None
 sessions = {}
 game_states = {}
 
 
-@socketio.on('connect')
-def handle_connect():
+@socketio.on('connect', namespace='/juegos/balatro-backend')
+def handle_connect(auth):
     global waiting_player
+    sid = request.sid  # This is valid here
+
     print("Si recibio 'connect' el socket")
-    #sid significa session id
-    sid = request.sid
 
-
-    if(waiting_player is None):
+    if waiting_player is None:
         waiting_player = sid
         print(f"{sid} is waiting someone to play with")
-
         emit('message', {'message': 'We are matching you with someone else'})
-    
     else:
         print('There is a second player')
-        #Hay un jugador esperando, y como se esta conectando un nuevo jugador se debe de crear una sala para ambos
         room_id = str(uuid.uuid4())
-        socketio.server.enter_room(waiting_player, room_id)
-        socketio.server.enter_room(sid, room_id)
 
-        #Guardar la sesion
+        # Add both players to the room
+        join_room(room_id, sid=waiting_player, namespace='/juegos/balatro-backend')
+        join_room(room_id, sid=sid, namespace='/juegos/balatro-backend')
+
         sessions[waiting_player] = room_id
         sessions[sid] = room_id
 
-        # Crear un estado independiente por sala
         state = GameState()
         state.p1_sid = waiting_player
         state.p2_sid = sid
-
-
-        # Guardar el estado 
         game_states[room_id] = state
 
-        # Imprimir en el backend que se creo una nueva sala
-        print(f"{waiting_player} and {sid} were matched{room_id}")
+        print(f"{waiting_player} and {sid} were matched {room_id}")
 
-        # Emitir el evento
-        emit('matched', { 'room': room_id, 'player_hand':state.p1_hand_handler.hand }, to=waiting_player)
-        emit('matched', { 'room': room_id, 'player_hand':state.p2_hand_handler.hand }, to=sid)
+        emit('matched', {'room': room_id, 'player_hand': state.p1_hand_handler.hand}, to=waiting_player, namespace='/juegos/balatro-backend')
+        emit('matched', {'room': room_id, 'player_hand': state.p2_hand_handler.hand}, to=sid, namespace='/juegos/balatro-backend')
 
         waiting_player = None
+
 
 
 
