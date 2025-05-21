@@ -29,6 +29,7 @@ function Pokemon() {
   const [isLookingForMatch, setIsLookingForMatch] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const [battleData, setBattleData] = useState(null)
+  const [socket, setSocket] = useState(null)
 
   // Handle step transitions
   const handleNextStep = (step, data) => {
@@ -44,7 +45,6 @@ function Pokemon() {
     setIsLookingForMatch(false)
   }
 
-  console.log(user)
   return (
     <Container h='100vh'>
       <Navbar />

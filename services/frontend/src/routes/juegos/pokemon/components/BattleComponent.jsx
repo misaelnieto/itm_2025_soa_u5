@@ -70,7 +70,8 @@ function BattleComponent({ handleNextStep, battleData, username, selectedPokemon
     if (!battleData?.roomId) return;
     
     // Create WebSocket connection (reuse the same connection from match finding if possible)
-    const wsUrl = `ws://${window.location.hostname}:4002/ws`;
+    // const wsUrl = `ws://${window.location.hostname}:8084/ws`; // local
+    const wsUrl = `ws://${window.location.hostname}:8083/ws`; // docker
     ws.current = new WebSocket(wsUrl);
     
     // Connection opened
@@ -282,6 +283,22 @@ function BattleComponent({ handleNextStep, battleData, username, selectedPokemon
     if (ws.current) {
       ws.current.close();
     }
+    setGameState({
+    yourTurn: battleData?.yourTurn || false,
+    battleLog: [],
+    yourPokemon: null,
+    opponentPokemon: null,
+    currentHp: {
+      your: 0,
+      opponent: 0
+    },
+    maxHp: {
+      your: 0,
+      opponent: 0
+    },
+    winner: null,
+    battleEnded: false
+  });
     handleNextStep && handleNextStep('selection');
   };
 
@@ -320,7 +337,7 @@ function BattleComponent({ handleNextStep, battleData, username, selectedPokemon
         height: '100%',
         left: 0,
         top: 0,
-        background: 'url(https://i.imgur.com/8CUIwKD.jpg)',
+        background: 'url(https://pokemonrevolution.net/forum/uploads/monthly_2021_03/DVMT-6OXcAE2rZY.jpg.afab972f972bd7fbd4253bc7aa1cf27f.jpg)',
         backgroundSize: 'cover',
         opacity: 0.3,
         zIndex: 0

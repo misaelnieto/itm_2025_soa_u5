@@ -43,7 +43,8 @@ function FindingMatchComponent({ handleNextStep, selectedPokemon, username, isLo
   useEffect(() => {
     // Create WebSocket connection
     if (!isLookingForMatch) return;
-    const wsUrl = `ws://${window.location.hostname}:4002/ws`;
+    const wsUrl = `ws://${window.location.hostname}:8083/ws`; // docker
+    // const wsUrl = `ws://${window.location.hostname}:8084/ws`; // local
     ws.current = new WebSocket(wsUrl);
     
     // Connection opened
@@ -82,7 +83,8 @@ function FindingMatchComponent({ handleNextStep, selectedPokemon, username, isLo
               handleNextStep && handleNextStep('battle', {
                 roomId: data.roomId,
                 players: data.players,
-                yourTurn: data.yourTurn
+                yourTurn: data.yourTurn,
+                socket: ws.current,
               });
             }, 1500);
             break;

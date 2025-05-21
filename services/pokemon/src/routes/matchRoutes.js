@@ -4,57 +4,8 @@ const Match = require('../models/Match');
 
 const router = express.Router();
 
-// Obtener todas las partidas
-router.get('/matches', async (req, res) => {
-  try {
-    const matches = await Match.find().sort({ createdAt: -1 });
-    res.json(matches);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Obtener las partidas de un usuario específico
-router.get('/matches/user/:username', async (req, res) => {
-  try {
-    const matches = await Match.find({
-      'players.username': req.params.username
-    }).sort({ createdAt: -1 });
-    
-    res.json(matches);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Obtener una partida por ID
-router.get('/matches/:id', async (req, res) => {
-  try {
-    const match = await Match.findById(req.params.id);
-    if (!match) {
-      return res.status(404).json({ message: 'Partida no encontrada' });
-    }
-    res.json(match);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Obtener una partida por roomId
-router.get('/matches/room/:roomId', async (req, res) => {
-  try {
-    const match = await Match.findOne({ roomId: req.params.roomId });
-    if (!match) {
-      return res.status(404).json({ message: 'Partida no encontrada' });
-    }
-    res.json(match);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
 // Obtener estadísticas generales (leaderboard)
-router.get('/stats/leaderboard', async (req, res) => {
+router.get('/leaderboard', async (req, res) => {
   try {
     // Obtener partidas completadas
     const completedMatches = await Match.find({ status: 'completed' });
@@ -69,7 +20,6 @@ router.get('/stats/leaderboard', async (req, res) => {
           playerStats[match.winner] = { wins: 0, losses: 0, matches: 0 };
         }
         playerStats[match.winner].wins += 1;
-        playerStats[match.winner].matches += 1;
       }
       
       // Procesar a todos los jugadores de la partida

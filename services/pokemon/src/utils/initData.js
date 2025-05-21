@@ -9,9 +9,8 @@ const initialPokemons = [
     type: {
       primary: "electric",
       secondary: null
-    },
-    stats: {
-      hp: 35,
+    },    stats: {
+      hp: 105, // Increased from 35
       attack: 55,
       defense: 40,
       specialAttack: 50,
@@ -56,9 +55,8 @@ const initialPokemons = [
     type: {
       primary: "fire",
       secondary: "flying"
-    },
-    stats: {
-      hp: 78,
+    },    stats: {
+      hp: 234, // Increased from 78
       attack: 84,
       defense: 78,
       specialAttack: 109,
@@ -103,9 +101,8 @@ const initialPokemons = [
     type: {
       primary: "water",
       secondary: null
-    },
-    stats: {
-      hp: 79,
+    },    stats: {
+      hp: 237, // Increased from 79
       attack: 83,
       defense: 100,
       specialAttack: 85,
@@ -150,9 +147,8 @@ const initialPokemons = [
     type: {
       primary: "grass",
       secondary: "poison"
-    },
-    stats: {
-      hp: 80,
+    },    stats: {
+      hp: 240, // Increased from 80
       attack: 82,
       defense: 83,
       specialAttack: 100,
@@ -197,9 +193,8 @@ const initialPokemons = [
     type: {
       primary: "psychic",
       secondary: null
-    },
-    stats: {
-      hp: 106,
+    },    stats: {
+      hp: 318, // Increased from 106
       attack: 110,
       defense: 90,
       specialAttack: 154,
@@ -250,7 +245,7 @@ async function initializePokemonDatabase() {
     if (count === 0) {
       console.log("🌱 Inicializando base de datos con Pokémon");
       
-      // Insertar todos los Pokémon
+      // Insertar todos los Pokémonwha
       await Pokemon.insertMany(initialPokemons);
       
       console.log(`✅ Base de datos inicializada con ${initialPokemons.length} Pokémon`);

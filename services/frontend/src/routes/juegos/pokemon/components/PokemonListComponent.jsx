@@ -9,15 +9,14 @@ function PokemonListComponent({ handleNextStep, pokemon }) {
   useEffect(() => {
     const fetchPokemons = async () => {
       try {
-        console.log('Fetching pokemons...')
-        const response = await fetch('http://localhost:4002/api/pokemons')
+        const response = await fetch('/api/pokemon-service/pokemons')
+        // const response = await fetch('http://127.0.0.1:8084/api/pokemons')
 
         if (!response.ok) {
           throw new Error(`Error: ${response.status}`)
         }
 
         const data = await response.json()
-        console.log('Pokemon data:', data)
         setPokemons(data)
         setLoading(false)
       } catch (error) {

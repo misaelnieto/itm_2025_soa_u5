@@ -8,22 +8,16 @@ const { initializePokemonDatabase } = require("./utils/initData");
 const server = http.createServer(app);
 initGameSocket(server);
 
-const PORT = process.env.PORT || 4002;
-// const MONGO_URI = process.env.MONGO_URI || "mongodb://root:example@172.19.0.2:27017/pokemon?authSource=admin&readPreference=primary&directConnection=true&ssl=false";
-const MONGO_URI = "mongodb://root:example@localhost:27017/pokemon?authSource=admin&readPreference=primary&directConnection=true&ssl=false";
+const PORT = process.env.PORT || 8083; // docker
+// const PORT = 8084; // local
+const MONGO_URI = process.env.MONGO_URI || "mongodb://root:example@172.19.0.2:27017/pokemon?authSource=admin&readPreference=primary&directConnection=true&ssl=false"; // docker
+// const MONGO_URI = "mongodb://root:example@localhost:27017/pokemon?authSource=admin&readPreference=primary&directConnection=true&ssl=false"; // local
 
-const mongooseOptions = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 4000, // Timeout after 10 seconds
-  socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-  family: 4 // Use IPv4, skip trying IPv6
-};
 
 const connectWithRetry = () => {
   console.log(`MongoDB connection attempt with URI: ${MONGO_URI}...`);
   
-  mongoose.connect(MONGO_URI, mongooseOptions)
+  mongoose.connect(MONGO_URI)
     .then(async () => {
       console.log("Successfully connected to MongoDB");
       

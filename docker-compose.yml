@@ -185,7 +185,7 @@ services:
         - path: ./services/pokemon/package.json
           action: rebuild
     ports:
-      - "${POKEMON_PORT}:4002"
+      - "${POKEMON_PORT}:8083"
     depends_on:
       - pokemon-db
     labels:
@@ -193,8 +193,8 @@ services:
       - traefik.docker.network=traefik-public
       - traefik.constraint-label=traefik-public
       - traefik.http.routers.pokemon.entrypoints=http
-      - traefik.http.services.pokemon.loadbalancer.server.port=4002
-      - traefik.http.routers.pokemon.rule=PathPrefix(`/pokemon`)
+      - traefik.http.services.pokemon.loadbalancer.server.port=8083
+      - traefik.http.routers.pokemon.rule=PathPrefix(`/api/pokemon-service`)
   
 
   proxy:

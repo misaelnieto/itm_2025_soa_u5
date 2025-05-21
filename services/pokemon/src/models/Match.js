@@ -32,11 +32,10 @@ const matchSchema = new mongoose.Schema({
     username: { type: String, required: true },
     pokemon: [battlePokemonSchema]
   }],
-  
-  // Estado de la partida
+    // Estado de la partida
   status: { 
     type: String, 
-    enum: ['waiting', 'active', 'completed'], 
+    enum: ['waiting', 'active', 'completed', 'abandoned', 'opponentDisconnected'], 
     default: 'waiting' 
   },
   
