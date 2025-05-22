@@ -22,6 +22,7 @@
 }
 
 .selected {
-    background-color: #007bff;
+  background-color: rgba(128, 128, 128, 0.2);  /* light grey at 20% opacity */
+  transform: translateY(-20px);                  /* move up 8px */
+  transition: background-color 0.2s, transform 0.2s; /* smooth transition */
 }
-

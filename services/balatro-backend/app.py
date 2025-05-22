@@ -5,6 +5,7 @@ from services.score_handler import score_hand
 import uuid
 import eventlet
 from flask_cors import CORS
+import logging
 
 
 eventlet.monkey_patch()
@@ -26,11 +27,15 @@ game_state = GameState()
 waiting_player = None
 sessions = {}
 game_states = {}
-
+logging.basicConfig(level=logging.INFO)
 
 @socketio.on('connect')
 def handle_connect():
+    
+	
     global waiting_player
+    
+    logging.info("Connect")
     print("Si recibio 'connect' el socket")
     #sid significa session id
     sid = request.sid
@@ -70,7 +75,7 @@ def handle_connect():
         emit('matched', { 'room': room_id, 'player_hand':state.p2_hand_handler.hand }, to=sid)
 
         waiting_player = None
-
+	
 
 
 # Route to serve the index.html
@@ -169,7 +174,9 @@ def discard_cards():
     data = request.get_json()
     sid = data.get('sid') # Obtener el id del jugador
     cards = data.get('cards', [])
-    print(cards)
+    logging.info('llego almetodo discard de api')
+    logging.info(f'cartas: {cards}')
+
 
     room_id = sessions.get(sid)
     game_state = game_states.get(room_id)

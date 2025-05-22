@@ -120,39 +120,39 @@ services:
   # Ajedrez. Un microservicio para jugar ajedrez.
   #########################################################
 
-  ajedrez:
-    <<: *ajedrez-base
-    restart: always
-    ports:
-      - "${AJEDREZ_PORT}:8000"
-    develop:
-      watch:
-        - path: ./services/ajedrez
-          action: sync
-          target: /app
-          ignore:
-            - ./services/ajedrez/.venv
-            - ./services/ajedrez/tests
-        - path: ./services/ajedrez/pyproject.toml
-          action: rebuild
+  # ajedrez:
+  #   <<: *ajedrez-base
+  #   restart: always
+  #   ports:
+  #     - "${AJEDREZ_PORT}:8000"
+  #   develop:
+  #     watch:
+  #       - path: ./services/ajedrez
+  #         action: sync
+  #         target: /app
+  #         ignore:
+  #           - ./services/ajedrez/.venv
+  #           - ./services/ajedrez/tests
+  #       - path: ./services/ajedrez/pyproject.toml
+  #         action: rebuild
 
-    command:
-      - /app/ajedrez-server
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=traefik-public
-      - traefik.constraint-label=traefik-public
-      - traefik.http.routers.ajedrez.entrypoints=http
-      - traefik.http.services.ajedrez.loadbalancer.server.port=7777
-      - traefik.http.routers.ajedrez.rule=PathPrefix(`/api/ajedrez`)
+  #   command:
+  #     - /app/ajedrez-server
+  #   labels:
+  #     - traefik.enable=true
+  #     - traefik.docker.network=traefik-public
+  #     - traefik.constraint-label=traefik-public
+  #     - traefik.http.routers.ajedrez.entrypoints=http
+  #     - traefik.http.services.ajedrez.loadbalancer.server.port=7777
+  #     - traefik.http.routers.ajedrez.rule=PathPrefix(`/api/ajedrez`)
 
-  # Ajedrez CLI. Una herramienta para interactuar con el microservicio de ajedrez.
-  # Ejecutando desde el host:
-  # docker compose run --rm ajedrez-cli
-  ajedrez-cli:
-    <<: *ajedrez-base
-    entrypoint: /app/ajedrez-cli
-    command: []
+  # # Ajedrez CLI. Una herramienta para interactuar con el microservicio de ajedrez.
+  # # Ejecutando desde el host:
+  # # docker compose run --rm ajedrez-cli
+  # ajedrez-cli:
+  #   <<: *ajedrez-base
+  #   entrypoint: /app/ajedrez-cli
+  #   command: []
 
   proxy:
     image: traefik:3.0
