@@ -2,8 +2,8 @@
 from fastapi import FastAPI, HTTPException
 from typing import Dict
 
-from game import Juego
-from models import (
+from app.game import Juego
+from app.models import (
     SolicitudRegistroJugador,
     RespuestaGenerica,
     SolicitudIntento,
@@ -14,12 +14,18 @@ from models import (
     EntradaLeaderboard,
     RespuestaLeaderboard
 )
-from database import Base, engine
-from db_models import Leaderboard
+from app.database import Base, engine
+from app.db_models import Leaderboard
 from sqlalchemy.orm import Session
-from database import SessionLocal
+from app.database import SessionLocal
+from sqlalchemy import inspect
 
-Base.metadata.create_all(bind=engine)
+inspector = inspect(engine)
+if 'leaderboard' not in inspector.get_table_names():
+    Leaderboard.__table__.create(bind=engine) #crear tabla leaderboard si no existe
+
+#Base.metadata.create_all(bind=engine) = crear todo lo de la base de datos
+
 
 app = FastAPI(title="API Picas y Fijas")
 

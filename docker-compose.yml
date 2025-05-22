@@ -218,6 +218,25 @@ services:
 
 #puerto 8096 para el backend 
 
+  picas-backend:
+    image: services/picas-backend
+    networks:
+      - traefik-public
+      - default
+    env_file:
+      - .env
+    build:
+      context: ./services/picas-backend
+    restart: always
+    ports:
+      - "${PICAS_BACKEND_SERVICE_PORT}:8096" # Cambiar el puerto a PICAS_BACKEND_SERVICE_PORT cuando haga commit
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.picas-backend.entrypoints=http
+      - traefik.http.services.picas-backend.loadbalancer.server.port=8096
+      - traefik.http.routers.picas-backend.rule=PathPrefix(`/api/picas`)
 
 
 

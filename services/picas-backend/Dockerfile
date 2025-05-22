@@ -36,6 +36,4 @@ COPY ./app /app/app
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync
 
-#puerto del docker
-CMD ["fastapi", "run", "--workers", "4", "app/main.py" "--port", "8082"]  
-
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8082", "--workers", "4"]

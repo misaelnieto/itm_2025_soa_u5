@@ -3,10 +3,10 @@ name = "picas-backend"
 version = "0.1.0"
 description = "API para el juego de Picas y Fijas"
 dependencies = [
-    "fastapi",
+    "fastapi[standard]",
     "uvicorn[standard]",
     "sqlalchemy"
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 
 [tool.uv]
