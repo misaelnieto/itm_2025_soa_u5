@@ -6,7 +6,9 @@ class GameState():
         self.p1_score = 0
         self.p2_score = 0
         self.p1_last_score = 0
+        self.p1_last_hand = ''
         self.p2_last_score = 0
+        self.p2_last_hand = ''
         self.current_player = 1
         self.current_turn = 0
         self.p1_hand_handler = PlayerDeckHandler()

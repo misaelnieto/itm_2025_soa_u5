@@ -99,3 +99,49 @@
 .game_over > div > h2{
     color: rgb(255, 180, 18);
 }
+
+#play-hand-btn{
+    z-index: 1;
+    width: 100px;
+    height: fit-content;
+    text-align: center;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    padding: 10px;
+    background-color: rgb(11, 98, 168);
+    box-shadow: 4px 4px 8px rgba(20, 20, 20, 0.767);
+}
+
+#discard-cards-btn{
+    z-index: 1;
+    width: 100px;
+    height: fit-content;
+    text-align: center;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    padding: 10px;
+    background-color: rgb(206, 29, 53);
+    box-shadow: 4px 4px 8px rgba(20, 20, 20, 0.767);
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}
+
+html {
+    background-color: black;
+    color: white;
+}
+
+body {
+    padding: 20px;
+    background-color: transparent;
+    background-image: url('/juegos/balatro/static/img/hi.res.png');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-attachment: fixed;
+    background-size: cover;
+    color: white;
+}

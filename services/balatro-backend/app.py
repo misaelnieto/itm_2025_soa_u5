@@ -30,7 +30,7 @@ game_states = {}
 logging.basicConfig(level=logging.INFO)
 
 @socketio.on('connect')
-def handle_connect():
+def handle_connect(auth):
     
 	
     global waiting_player
@@ -75,13 +75,7 @@ def handle_connect():
         emit('matched', { 'room': room_id, 'player_hand':state.p2_hand_handler.hand }, to=sid)
 
         waiting_player = None
-	
 
-
-# Route to serve the index.html
-@app.route('/')
-def index():
-    return render_template('index.html')
 
 @app.route('/play_hand', methods=['POST'])
 def play_hand():
@@ -115,6 +109,7 @@ def play_hand():
         # Si el jugador 1 ya hizo su jugada, es turno del jugador 2
         socketio.emit('update_turn', {'current_turn':2}, room = room_id)
         game_state.current_player = 2
+        game_state.p1_last_hand = hand_played.name
         return jsonify({"received": cards,"score": score,"hand_played": hand_played.name, "valid_cards": valid_cards})
 
 
@@ -164,6 +159,7 @@ def play_hand():
             # Si el jugador 2 ya hizo su jugada, es turno del jugador 1
             socketio.emit('update_turn', {'current_turn':1}, room = room_id)
             game_state.current_player = 1
+            game_state.p2_last_hand = hand_played.name
             return jsonify({"received": cards,"score": score,"hand_played": hand_played.name, "valid_cards": valid_cards})
         
 
@@ -211,16 +207,22 @@ def get_game_info():
         hand = game_state.p1_hand_handler.hand
         total = game_state.p1_score
         last_score = game_state.p1_last_score
+        last_hand = game_state.p1_last_hand
+        last_opponent_score = game_state.p2_last_score
     
     elif sid == game_state.p2_sid:
         hand = game_state.p2_hand_handler.hand
         total = game_state.p2_score
         last_score = game_state.p2_last_score
+        last_hand = game_state.p2_last_hand
+        last_opponent_score = game_state.p1_last_score
 
     return jsonify({
         "hand": hand, 
         "total":total,
-        "last_score":last_score
+        "last_score":last_score,
+        "last_hand": last_hand,
+        "last_opponent_score": last_opponent_score
     })
 
 
@@ -248,8 +250,4 @@ def draw_cards():
 
 
 if __name__ == '__main__':
-    print("Starting server with configuration:")
-    print(f"Host: 0.0.0.0")
-    print(f"Port: 80")
-    print(f"Socket.IO path: /juegos/balatro-backend/socket.io")
     socketio.run(app, host='0.0.0.0', port=80, debug=True, allow_unsafe_werkzeug=True)

@@ -5,6 +5,8 @@
     justify-content: flex-start;  /* Align the cards from left to right */
     gap: 10px;                /* Space between the cards */
     padding: 10px;            /* Padding around the container */
+    padding-top: 100px;
+    background-color: transparent;
 }
 
 /* Styling for the individual poker cards */
@@ -16,12 +18,13 @@
     display: flex;
     flex-direction: column;  /* Align title vertically */
     justify-content: center; /* Center the content vertically */
-    background-color: white; /* Background color of the card */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for the card */
+    background-color: transparent;
     text-align: center;      /* Center the title text */
 }
 
 .selected {
-    background-color: #007bff;
+  background-color: rgba(128, 128, 128, 0.2); 
+  transform: translateY(-25px);             
+  transition: background-color 0.2s, transform 0.2s;
 }
-
