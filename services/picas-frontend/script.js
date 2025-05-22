@@ -193,3 +193,32 @@ guessNums.forEach(input => {
   input.addEventListener('input', verificarInputsLlenos);
 });
 
+const socket = new WebSocket("ws://localhost:8096/juegos/picas-backend/ws");
+let role = null;
+
+socket.addEventListener("message", (event) => {
+  const data = JSON.parse(event.data);
+
+  if (data.type === "role") {
+    role = data.role;
+    console.log("Tu rol:", role);
+  }
+
+  if (data.type === "status") {
+    console.log(data.message);
+    document.getElementById("contrincante-status").textContent = data.message;
+  }
+
+  if (data.type === "start") {
+    console.log("¡Ambos jugadores listos!");
+    document.getElementById("contrincante-status").textContent = "¡Contrincante listo!";
+    document.getElementById("adivina-inputs").style.display = "block";
+  }
+});
+
+function enviarNumeroSecreto(numero) {
+  socket.send(JSON.stringify({
+    type: "ready",
+    secret: numero
+  }));
+}

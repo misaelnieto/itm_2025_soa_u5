@@ -229,14 +229,16 @@ services:
       context: ./services/picas-backend
     restart: always
     ports:
-      - "${PICAS_BACKEND_SERVICE_PORT}:8096" # Cambiar el puerto a PICAS_BACKEND_SERVICE_PORT cuando haga commit
+      - "${PICAS_BACKEND_SERVICE_PORT}:8000" # Cambiar el puerto a PICAS_BACKEND_SERVICE_PORT cuando haga commit
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
       - traefik.constraint-label=traefik-public
       - traefik.http.routers.picas-backend.entrypoints=http
-      - traefik.http.services.picas-backend.loadbalancer.server.port=8096
-      - traefik.http.routers.picas-backend.rule=PathPrefix(`/api/picas`)
+      - traefik.http.services.picas-backend.loadbalancer.server.port=8000
+      - traefik.http.routers.picas-backend.rule=PathPrefix(`/juegos/picas-backend`)
+      - traefik.http.routers.picas-backend.middlewares=picas-backend-strip
+      - traefik.http.middlewares.picas-backend-strip.stripprefix.prefixes=/juegos/picas-backend
 
 
 
@@ -246,7 +248,7 @@ volumes:
   cargo-target:
   usuarios-db:
   ajedrez-db:
-#agregar db para picas
+  picas-db:
 
 networks:
   traefik-public:

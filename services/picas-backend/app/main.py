@@ -1,6 +1,9 @@
 #main.py
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from app.game_manager import GameRoom
 from typing import Dict
+import logging 
 
 from app.game import Juego
 from app.models import (
@@ -18,16 +21,61 @@ from app.database import Base, engine
 from app.db_models import Leaderboard
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
-from sqlalchemy import inspect
 
-inspector = inspect(engine)
-if 'leaderboard' not in inspector.get_table_names():
-    Leaderboard.__table__.create(bind=engine) #crear tabla leaderboard si no existe
-
-#Base.metadata.create_all(bind=engine) = crear todo lo de la base de datos
-
+def init_db():
+    Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="API Picas y Fijas")
+room = GameRoom()
+
+logging.basicConfig(level=logging.INFO)
+
+
+# Permitir acceso desde tu frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # o tu dominio específico
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.on_event("startup")
+def on_startup():
+    init_db()
+
+@app.websocket("/juegos/picas-backend/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    logging.info("intentanding")
+    await websocket.accept()
+    
+    role = room.add_player(websocket)
+    if not role:
+        await websocket.send_json({"type": "error", "message": "Sala llena"})
+        await websocket.close()
+        return
+
+    await websocket.send_json({"type": "role", "role": role})
+
+    try:
+        while True:
+            data = await websocket.receive_json()
+
+            if data["type"] == "ready":
+                secret = data["secret"]
+                room.set_ready(websocket, secret)
+                opponent = room.get_opponent(websocket)
+
+                await websocket.send_json({"type": "status", "message": "Esperando contrincante..."})
+
+                if room.both_ready():
+                    # Notificar a ambos que ya pueden jugar
+                    await websocket.send_json({"type": "start"})
+                    if opponent:
+                        await opponent.send_json({"type": "start"})
+
+    except WebSocketDisconnect:
+        room.remove_player(websocket)
 
 id_partida_fija = "partida-unica"
 partidas: Dict[str, Juego] = {
@@ -104,3 +152,7 @@ def obtener_leaderboard():
         for i, entrada in enumerate(resultados)
 ]
     return RespuestaLeaderboard(top=entradas)
+
+@app.get("/")
+def root():
+    return {"message": "Bienvenido a la API de Picas y Fijas!"}
