@@ -3,51 +3,73 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 from game_state import GameState
 from services.score_handler import score_hand
 import uuid
+import eventlet
+from flask_cors import CORS
+
+
+eventlet.monkey_patch()
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
 app.config['SECRET_KEY'] = 'secret'
-socketio = SocketIO(app)
+socketio = SocketIO(app, 
+    path='/juegos/balatro-backend/socket.io',
+    cors_allowed_origins="*",
+    async_mode='eventlet',
+    logger=True,
+    engineio_logger=True,
+    always_connect=True)
 game_state = GameState()
+
 
 waiting_player = None
 sessions = {}
 game_states = {}
 
 
-@socketio.on('connect', namespace='/juegos/balatro-backend')
-def handle_connect(auth):
+@socketio.on('connect')
+def handle_connect():
     global waiting_player
-    sid = request.sid  # This is valid here
-
     print("Si recibio 'connect' el socket")
+    #sid significa session id
+    sid = request.sid
 
-    if waiting_player is None:
+
+    if(waiting_player is None):
         waiting_player = sid
         print(f"{sid} is waiting someone to play with")
+
         emit('message', {'message': 'We are matching you with someone else'})
+    
     else:
         print('There is a second player')
+        #Hay un jugador esperando, y como se esta conectando un nuevo jugador se debe de crear una sala para ambos
         room_id = str(uuid.uuid4())
+        socketio.server.enter_room(waiting_player, room_id)
+        socketio.server.enter_room(sid, room_id)
 
-        # Add both players to the room
-        join_room(room_id, sid=waiting_player, namespace='/juegos/balatro-backend')
-        join_room(room_id, sid=sid, namespace='/juegos/balatro-backend')
-
+        #Guardar la sesion
         sessions[waiting_player] = room_id
         sessions[sid] = room_id
 
+        # Crear un estado independiente por sala
         state = GameState()
         state.p1_sid = waiting_player
         state.p2_sid = sid
+
+
+        # Guardar el estado 
         game_states[room_id] = state
 
-        print(f"{waiting_player} and {sid} were matched {room_id}")
+        # Imprimir en el backend que se creo una nueva sala
+        print(f"{waiting_player} and {sid} were matched{room_id}")
 
-        emit('matched', {'room': room_id, 'player_hand': state.p1_hand_handler.hand}, to=waiting_player, namespace='/juegos/balatro-backend')
-        emit('matched', {'room': room_id, 'player_hand': state.p2_hand_handler.hand}, to=sid, namespace='/juegos/balatro-backend')
+        # Emitir el evento
+        emit('matched', { 'room': room_id, 'player_hand':state.p1_hand_handler.hand }, to=waiting_player)
+        emit('matched', { 'room': room_id, 'player_hand':state.p2_hand_handler.hand }, to=sid)
 
         waiting_player = None
-
 
 
 
@@ -219,4 +241,8 @@ def draw_cards():
 
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=80, debug=True,allow_unsafe_werkzeug=True)
+    print("Starting server with configuration:")
+    print(f"Host: 0.0.0.0")
+    print(f"Port: 80")
+    print(f"Socket.IO path: /juegos/balatro-backend/socket.io")
+    socketio.run(app, host='0.0.0.0', port=80, debug=True, allow_unsafe_werkzeug=True)

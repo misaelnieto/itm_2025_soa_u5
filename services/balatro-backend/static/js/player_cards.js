@@ -1,7 +1,46 @@
-let socket = io('/juegos/balatro-backend', {
-    path: '/juegos/balatro-backend/socket.io'
+
+
+let socket = io('localhost:8088', {
+    path: '/juegos/balatro-backend/socket.io',
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+    forceNew: true,
+    upgrade: true,
+    rememberUpgrade: true,
+    autoConnect: true
 });
+
+socket.on('connect', () => {
+    console.log("Connected! My SID:", socket.id);
+    console.log("Transport:", socket.io.engine.transport.name);
+});
+
+socket.on('connect_error', (error) => {
+    console.error('Connection error:', error);
+    console.error('Error details:', {
+        message: error.message,
+        description: error.description,
+        type: error.type,
+        context: error
+    });
+});
+
+socket.on('connect_timeout', (timeout) => {
+    console.error('Connection timeout:', timeout);
+});
+
+socket.on('reconnect_attempt', (attemptNumber) => {
+    console.log('Reconnection attempt:', attemptNumber);
+});
+
+socket.on('reconnect_failed', () => {
+    console.error('Failed to reconnect');
+});
+
 let sid = null;
+// ... existing code ...
 let turn = 1;
 let proceed_playHand = false;
 let win = "https://media.istockphoto.com/id/1447471637/video/you-win-glitch-4k-video-animation-footage-pixel-message-design-glitch-effect.jpg?s=640x640&k=20&c=JGgJOzzgHAWu33tEMYl-yghunxslgkdZGDHbqCB8KNA=";
@@ -58,13 +97,12 @@ const cardRank = {
 
 // This functions is running at the beggin
 document.addEventListener('DOMContentLoaded', function () {
-    console.log("player_cards.js cargado")
-    document.getElementById("play-hand-btn").addEventListener('click', () => {
-        playHand();
+    document.getElementById("play-hand-btn").addEventListener('click', async () => {
+        await playHand();
     });
-    document.getElementById("discard-cards-btn").addEventListener('click', () => {
-        discardCards();
-        drawCardsForP1();
+    document.getElementById("discard-cards-btn").addEventListener('click', async () => {
+        await discardCards();
+        await drawCardsForP1();
     });
 
     
@@ -134,7 +172,6 @@ async function  playHand() {
 
         // Parses selectCards as an string
         extractCardsToString();
-
 
         // Orders the card by the biggest rank to the smallets rank
         // Example:  A A J 9 9 7 3 
@@ -273,7 +310,7 @@ function getGameState(){
     });
 }
 
-function discardCards(){
+async function discardCards(){
     if (selectedCardsTags.length > 0) {
         extractCardsToString();
 
@@ -288,18 +325,19 @@ function discardCards(){
             });
         });
         discardInAPI(selectedCards);
-        drawCardsForP1();
+        await drawCardsForP1();
         selectedCardsTags = [];
     }
 }
 
 function discardInAPI(cards){
-    fetch(`/juegos/balatro-backend/discard?sid=${sid}`, {
+    fetch(`/juegos/balatro-backend/discard`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+            sid: sid,
             cards: cards
         })
     })

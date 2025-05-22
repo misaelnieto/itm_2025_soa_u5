@@ -3,3 +3,5 @@ pymssql
 requests
 jsonify
 flask_socketio
+eventlet
+flask-cors
