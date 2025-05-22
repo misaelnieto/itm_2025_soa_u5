@@ -154,6 +154,45 @@ services:
     entrypoint: /app/ajedrez-cli
     command: []
 
+  conecta4-frontend:
+    image: services/conecta4-frontend
+    networks:
+      - traefik-public
+      - default
+    env_file:
+      - .env
+    build:
+      context: ./services/conecta4-frontend
+    restart: always
+    ports:
+      - "${CONECTA4_FRONTEND_SERVICE_PORT}:80"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.conecta4-frontend.entrypoints=http
+      - traefik.http.services.conecta4-frontend.loadbalancer.server.port=80
+      - traefik.http.routers.conecta4-frontend.rule=PathPrefix(`/juegos/conecta4`)
+
+
+  conecta4-backend:
+    image: services/conecta4-backend
+    networks:
+      - traefik-public
+      - default
+    build:
+      context: ./services/conecta4-backend
+    restart: always
+    ports:
+      - "${CONECTA4_BACKEND_SERVICE_PORT}:8091"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.conecta4-backend.entrypoints=http
+      - traefik.http.services.conecta4-backend.loadbalancer.server.port=8091
+      - traefik.http.routers.conecta4-backend.rule=PathPrefix(`/api/backend-conecta4`)
+
   proxy:
     image: traefik:3.0
     volumes:

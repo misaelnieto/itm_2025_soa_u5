@@ -1,0 +1,22 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f0f0f0;
+}
+#board {
+    display: grid;
+    grid-template-columns: repeat(7, 60px);
+    gap: 5px;
+    justify-content: center;
+    margin: 20px 0;
+}
+.cell {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: white;
+    border: 2px solid #333;
+    cursor: pointer;
+}
+.cell.red { background-color: red; }
+.cell.yellow { background-color: yellow; }

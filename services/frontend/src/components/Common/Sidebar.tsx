@@ -4,8 +4,10 @@ import { useState } from "react"
 import { FaBars } from "react-icons/fa"
 import { FiLogOut } from "react-icons/fi"
 
-import type { UserPublic } from "@/client/usuarios"
-import useAuth from "@/hooks/useAuth"
+// Update the import path below to the correct location of 'usuarios' or create the file if missing
+// Example (adjust as needed):
+import type { UserPublic } from "../../client/usuarios"
+import useAuth from "../../hooks/useAuth"
 import {
   DrawerBackdrop,
   DrawerBody,
