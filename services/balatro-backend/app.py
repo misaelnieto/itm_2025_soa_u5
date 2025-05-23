@@ -4,6 +4,8 @@ from game_state import GameState
 from services.deck_handler import PlayerDeckHandler
 from services.score_handler import check_hand, score_hand
 import uuid
+from db import get_connection
+from datetime import datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret'
@@ -14,6 +16,41 @@ game_state = GameState()
 waiting_player = None
 sessions = {}
 game_states = {}
+
+# top_player_score = [
+#     {
+#         "id": 45,
+#         "score": 2310,
+#         "date": "2025-01-09"
+#     },
+#     {
+#         "id": 310,
+#         "score": 2301,
+#         "date": "2025-04-10"
+#     },
+#     {
+#         "id": 19,
+#         "score": 2298,
+#         "date": "2024-11-02"
+#     },
+#     {
+#         "id": 99,
+#         "score": 2293,
+#         "date": "2024-03-30"
+#     },
+#     {
+#         "id": 411,
+#         "score": 2285,
+#         "date": "2023-12-20"
+#     },
+#     {
+#         "id": 543,
+#         "score": 2280,
+#         "date": "2023-09-22"
+#     },
+# ]
+
+
 
 
 @socketio.on('connect')
@@ -33,7 +70,7 @@ def handle_connect():
     else:
         print('There is a second player')
         #Hay un jugador esperando, y como se esta conectando un nuevo jugador se debe de crear una sala para ambos
-        room_id = str(uuid.uuid4())
+        room_id = str(uuid.uuid4())  
         socketio.server.enter_room(waiting_player, room_id)
         socketio.server.enter_room(sid, room_id)
 
@@ -120,7 +157,7 @@ def play_hand():
             if game_state.p2_score > game_state.p1_score:
                 socketio.emit('game_over', { 'score': game_state.p1_score, 'win':0 }, to=game_state.p1_sid)
                 socketio.emit('game_over', { 'score': game_state.p2_score, 'win':1 }, to=game_state.p2_sid)
-            
+                        
             elif game_state.p1_score > game_state.p2_score:
                 socketio.emit('game_over', { 'score': game_state.p1_score, 'win':1 }, to=game_state.p1_sid)
                 socketio.emit('game_over', { 'score': game_state.p2_score, 'win':0 }, to=game_state.p2_sid)
@@ -128,6 +165,44 @@ def play_hand():
             else:
                 socketio.emit('game_over', { 'score': game_state.p1_score, 'win':2 }, to=game_state.p1_sid)
                 socketio.emit('game_over', { 'score': game_state.p2_score, 'win':2 }, to=game_state.p2_sid)
+
+
+
+
+            #  <---  Inicio leaderboard
+
+            connH = get_connection()
+            cursorH = connH.cursor()
+            now = datetime.now()
+
+            # Insertar puntaje del jugador 1
+            cursorH.execute("SELECT id FROM leaderboard WHERE id = ?",(player1_id,))
+            result1 = cursorH.fetchone()
+            if result1 is None:
+                # No existe un puntaje del usuario en el leaderboard
+                cursorH.execute("INSERT INTO leaderboard (id,score,room) values (?,?,?)", (player1_id, game_state.p1_score, room_id))
+            else:
+                # Ya existia un puntaje
+                cursorH.execute("UPDATE leaderboard SET score = ?, room = ?, date = ? WHERE id = ?",(game_state.p1_score, room_id, now, player1_id))
+
+
+            # Insertar puntaje del jugador 2
+            cursorH.execute("SELECT id FROM leaderboard where id = ?",(player2_id,))
+            result2 = cursorH.fetchone()
+            if result2 is None:
+                # No existe un puntaje del usuario en el leaderboard
+                cursorH.execute("INSERT INTO leaderboard (id,score,room) values (?,?,?)",(player2_id, game_state.p2_score, room_id))
+            else:
+                # Ya existia un puntaje
+                cursorH.execute("UPDATE leaderboard SET score = ?, room = ?, date = ? WHERE id = ?",(game_state.p2_score, room_id, now, player2_id))
+
+
+            connH.commit()   # Guardar los cambios en la database
+            connH.close()
+
+            #  <---  Fin leaderboard
+
+
 
             sessions.pop(game_state.p1_sid, None)
             sessions.pop(game_state.p2_sid, None)
@@ -206,7 +281,6 @@ def get_game_info():
 
 
 
-
 @app.route('/draw_cards')
 def draw_cards():
 
@@ -230,6 +304,35 @@ def draw_cards():
 
 
 
+
+@app.route('/leaderboard')
+def leaderboard():
+
+    connL = get_connection()
+    cursorL = connL.cursor()
+
+    cursorL.execute("SELECT winner_id, points, date FROM leaderboard ORDER BY points DESC LIMIT 10")
+    rows = cursorL.fetchall()
+
+    connL.close()  # Serar la conexion
+
+    top_players_score = [{
+            "id": row[0],
+            "score": row[1],
+            "date": row[2]
+        } for row in rows]
+
+    return render_template('leader_board.html',top_players=top_players_score)
+
+
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', debug=True)
 
+
+
+# CREATE TABLE leaderboard (
+#     id SERIAL PRIMARY KEY,
+#     room TEXT NOT NULL,
+#     score INTEGER NOT NULL,
+#     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+# );

@@ -19,6 +19,7 @@ let stop_notification = document.getElementsByClassName('stop')[0];
 let final = document.getElementsByClassName('game_over')[0];
 let image_final = document.getElementsByClassName('final-i')[0];
 let h2_final = document.getElementsByClassName('final-h2')[0];
+let leaderboard = document.getElementsByClassName('leaderboard-button')[0];
 
 
 socket.on('update_turn', (data)=>{
@@ -328,5 +329,8 @@ socket.on('game_over',(data)=>{
     h2_final.textContent = data.score;
 
     final.style.display = 'inline-block';
+
+
+    leaderboard.style.display = 'flex';
 
 });
