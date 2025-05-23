@@ -22,8 +22,28 @@ from app.db_models import Leaderboard
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 
-def init_db():
+def init_db(): #### Creacion de la base de datos 
     Base.metadata.create_all(bind=engine)
+
+    ######## REGISTROS DE PRUEBA ########
+
+    db= SessionLocal() # crea una sesion de la base de datos
+    # Verifica si ya hay datos para evitar duplicados
+    count = db.query(Leaderboard).count()
+    if count == 0:
+        #se crean 10 registros de prueba
+        for i in range(1, 11):
+            jugador = f"JugadorPrueba_{i}"
+            puntuacion = 60 - (i * 5)  # Puntuaciones de prueba
+            entrada = Leaderboard(jugador=jugador, puntuacion=puntuacion)
+            db.add(entrada)
+        db.commit()
+        logging.info("Se insertaron 10 registros de prueba en Leaderboard")
+    else:
+        logging.info("La tabla Leaderboard ya tiene registros. NO se insertaron datos de prueba.")
+    db.close()
+
+
 
 app = FastAPI(title="API Picas y Fijas")
 room = GameRoom()
