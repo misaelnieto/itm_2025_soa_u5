@@ -382,4 +382,6 @@ socket.on('game_over', (data) => {
     h2_final.textContent = data.score;
 
     final.style.display = 'inline-block';
+
+    leaderboard.style.display = 'flex';
 });
