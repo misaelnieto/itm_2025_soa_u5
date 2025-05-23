@@ -1,0 +1,5 @@
+flask
+pymssql
+requests
+jsonify
+flask_socketio

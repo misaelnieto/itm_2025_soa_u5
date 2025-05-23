@@ -1,15 +1,25 @@
-from flask import Flask, jsonify, request, send_from_directory, render_template
-from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect
+from flask import Flask, jsonify, request, render_template
+from flask_socketio import SocketIO, emit, join_room, leave_room
 from game_state import GameState
-from services.deck_handler import PlayerDeckHandler
-from services.score_handler import check_hand, score_hand
+from services.score_handler import score_hand
 import uuid
+import eventlet
+from flask_cors import CORS
+import logging
 from db import get_connection
 from datetime import datetime
-
+eventlet.monkey_patch()
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
 app.config['SECRET_KEY'] = 'secret'
-socketio = SocketIO(app)
+socketio = SocketIO(app, 
+    path='/juegos/balatro-backend/socket.io',
+    cors_allowed_origins="*",
+    async_mode='eventlet',
+    logger=True,
+    engineio_logger=True,
+    always_connect=True)
 game_state = GameState()
 
 
@@ -17,45 +27,14 @@ waiting_player = None
 sessions = {}
 game_states = {}
 
-# top_player_score = [
-#     {
-#         "id": 45,
-#         "score": 2310,
-#         "date": "2025-01-09"
-#     },
-#     {
-#         "id": 310,
-#         "score": 2301,
-#         "date": "2025-04-10"
-#     },
-#     {
-#         "id": 19,
-#         "score": 2298,
-#         "date": "2024-11-02"
-#     },
-#     {
-#         "id": 99,
-#         "score": 2293,
-#         "date": "2024-03-30"
-#     },
-#     {
-#         "id": 411,
-#         "score": 2285,
-#         "date": "2023-12-20"
-#     },
-#     {
-#         "id": 543,
-#         "score": 2280,
-#         "date": "2023-09-22"
-#     },
-# ]
-
-
-
 
 @socketio.on('connect')
-def handle_connect():
+def handle_connect(auth):
+    
+	
     global waiting_player
+    
+    logging.info("Connect")
     print("Si recibio 'connect' el socket")
     #sid significa session id
     sid = request.sid
@@ -97,12 +76,6 @@ def handle_connect():
         waiting_player = None
 
 
-
-# Route to serve the index.html
-@app.route('/')
-def index():
-    return render_template('index.html')
-
 @app.route('/play_hand', methods=['POST'])
 def play_hand():
 
@@ -135,6 +108,7 @@ def play_hand():
         # Si el jugador 1 ya hizo su jugada, es turno del jugador 2
         socketio.emit('update_turn', {'current_turn':2}, room = room_id)
         game_state.current_player = 2
+        game_state.p1_last_hand = hand_played.name
         return jsonify({"received": cards,"score": score,"hand_played": hand_played.name, "valid_cards": valid_cards})
 
 
@@ -222,6 +196,7 @@ def play_hand():
             # Si el jugador 2 ya hizo su jugada, es turno del jugador 1
             socketio.emit('update_turn', {'current_turn':1}, room = room_id)
             game_state.current_player = 1
+            game_state.p2_last_hand = hand_played.name
             return jsonify({"received": cards,"score": score,"hand_played": hand_played.name, "valid_cards": valid_cards})
         
 
@@ -232,7 +207,9 @@ def discard_cards():
     data = request.get_json()
     sid = data.get('sid') # Obtener el id del jugador
     cards = data.get('cards', [])
-    print(cards)
+    logging.info('llego almetodo discard de api')
+    logging.info(f'cartas: {cards}')
+
 
     room_id = sessions.get(sid)
     game_state = game_states.get(room_id)
@@ -267,16 +244,22 @@ def get_game_info():
         hand = game_state.p1_hand_handler.hand
         total = game_state.p1_score
         last_score = game_state.p1_last_score
+        last_hand = game_state.p1_last_hand
+        last_opponent_score = game_state.p2_last_score
     
     elif sid == game_state.p2_sid:
         hand = game_state.p2_hand_handler.hand
         total = game_state.p2_score
         last_score = game_state.p2_last_score
+        last_hand = game_state.p2_last_hand
+        last_opponent_score = game_state.p1_last_score
 
     return jsonify({
         "hand": hand, 
         "total":total,
-        "last_score":last_score
+        "last_score":last_score,
+        "last_hand": last_hand,
+        "last_opponent_score": last_opponent_score
     })
 
 
@@ -304,35 +287,6 @@ def draw_cards():
 
 
 
-
-@app.route('/leaderboard')
-def leaderboard():
-
-    connL = get_connection()
-    cursorL = connL.cursor()
-
-    cursorL.execute("SELECT winner_id, points, date FROM leaderboard ORDER BY points DESC LIMIT 10")
-    rows = cursorL.fetchall()
-
-    connL.close()  # Serar la conexion
-
-    top_players_score = [{
-            "id": row[0],
-            "score": row[1],
-            "date": row[2]
-        } for row in rows]
-
-    return render_template('leader_board.html',top_players=top_players_score)
-
-
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', debug=True)
 
-
-
-# CREATE TABLE leaderboard (
-#     id SERIAL PRIMARY KEY,
-#     room TEXT NOT NULL,
-#     score INTEGER NOT NULL,
-#     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-# );

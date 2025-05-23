@@ -120,39 +120,39 @@ services:
   # Ajedrez. Un microservicio para jugar ajedrez.
   #########################################################
 
-  ajedrez:
-    <<: *ajedrez-base
-    restart: always
-    ports:
-      - "${AJEDREZ_PORT}:8000"
-    develop:
-      watch:
-        - path: ./services/ajedrez
-          action: sync
-          target: /app
-          ignore:
-            - ./services/ajedrez/.venv
-            - ./services/ajedrez/tests
-        - path: ./services/ajedrez/pyproject.toml
-          action: rebuild
+  # ajedrez:
+  #   <<: *ajedrez-base
+  #   restart: always
+  #   ports:
+  #     - "${AJEDREZ_PORT}:8000"
+  #   develop:
+  #     watch:
+  #       - path: ./services/ajedrez
+  #         action: sync
+  #         target: /app
+  #         ignore:
+  #           - ./services/ajedrez/.venv
+  #           - ./services/ajedrez/tests
+  #       - path: ./services/ajedrez/pyproject.toml
+  #         action: rebuild
 
-    command:
-      - /app/ajedrez-server
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=traefik-public
-      - traefik.constraint-label=traefik-public
-      - traefik.http.routers.ajedrez.entrypoints=http
-      - traefik.http.services.ajedrez.loadbalancer.server.port=7777
-      - traefik.http.routers.ajedrez.rule=PathPrefix(`/api/ajedrez`)
+  #   command:
+  #     - /app/ajedrez-server
+  #   labels:
+  #     - traefik.enable=true
+  #     - traefik.docker.network=traefik-public
+  #     - traefik.constraint-label=traefik-public
+  #     - traefik.http.routers.ajedrez.entrypoints=http
+  #     - traefik.http.services.ajedrez.loadbalancer.server.port=7777
+  #     - traefik.http.routers.ajedrez.rule=PathPrefix(`/api/ajedrez`)
 
-  # Ajedrez CLI. Una herramienta para interactuar con el microservicio de ajedrez.
-  # Ejecutando desde el host:
-  # docker compose run --rm ajedrez-cli
-  ajedrez-cli:
-    <<: *ajedrez-base
-    entrypoint: /app/ajedrez-cli
-    command: []
+  # # Ajedrez CLI. Una herramienta para interactuar con el microservicio de ajedrez.
+  # # Ejecutando desde el host:
+  # # docker compose run --rm ajedrez-cli
+  # ajedrez-cli:
+  #   <<: *ajedrez-base
+  #   entrypoint: /app/ajedrez-cli
+  #   command: []
 
   proxy:
     image: traefik:3.0
@@ -190,7 +190,49 @@ services:
     networks:
       - traefik-public
       - default
+  balatro-frontend:
+    image: services/balatro-frontend
+    networks:
+      - traefik-public
+      - default
+    env_file:
+      - .env
+    build:
+      context: ./services/balatro-frontend
+    restart: always
+    ports:
+      - "${BALATRO_FRONTEND_SERVICE_PORT}:80"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.balatro-frontend.rule=PathPrefix(`/juegos/balatro`)
+      - traefik.http.routers.balatro-frontend.entrypoints=http
+      - traefik.http.routers.balatro-frontend.middlewares=balatro-frontend-strip
+      - traefik.http.middlewares.balatro-frontend-strip.stripprefix.prefixes=/juegos/balatro
+      - traefik.http.services.balatro-frontend.loadbalancer.server.port=80
 
+  balatro-backend:
+    image: services/balatro-backend
+    networks:
+      - traefik-public
+      - default
+    env_file:
+      - .env
+    build:
+      context: ./services/balatro-backend
+    restart: always
+    ports:
+      - "${BALATRO_BACKEND_SERVICE_PORT}:80"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.balatro-backend.rule=PathPrefix(`/juegos/balatro-backend`)
+      - traefik.http.routers.balatro-backend.entrypoints=http
+      - traefik.http.routers.balatro-backend.middlewares=balatro-backend-strip
+      - traefik.http.middlewares.balatro-backend-strip.stripprefix.prefixes=/juegos/balatro-backend
+      - traefik.http.services.balatro-backend.loadbalancer.server.port=80
 volumes:
   cargo-cache:
   cargo-target:
