@@ -136,7 +136,6 @@ html {
 }
 
 body {
-    padding: 20px;
     background-color: transparent;
     background-image: url('/juegos/balatro/static/img/hi.res.png');
     background-repeat: no-repeat;
@@ -144,4 +143,8 @@ body {
     background-attachment: fixed;
     background-size: cover;
     color: white;
+}
+
+#game-container{
+        padding: 20px;
 }
