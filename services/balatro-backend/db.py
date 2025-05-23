@@ -1,6 +1,6 @@
 import sqlite3
 
-DB_PATH = "/ruta/compartida/base_datos.py"
+DB_PATH = "/app/data/balatro_leadeboard.db"
 
 
 
