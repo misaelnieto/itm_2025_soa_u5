@@ -35,6 +35,17 @@ x-ajedrez-base: &ajedrez-base
     - RUST_LOG=info
     - /app/ajedrez-server
 
+x-memorama-base: &memorama-base
+  image: services/memorama
+  networks:
+    - traefik-public
+    - default
+  env_file:
+    - .env
+  build:
+    context: ./services/memorama
+  volumes:
+    - memorama-db:/app/data
 
 services:
   #########################################################
@@ -72,7 +83,6 @@ services:
       - traefik.http.routers.frontend.entrypoints=http
       - traefik.http.services.frontend.loadbalancer.server.port=80
       - traefik.http.routers.frontend.rule=PathPrefix(`/`)
-
 
   #########################################################
   # Microservicio de usuarios. Autenticación.
@@ -114,8 +124,6 @@ services:
     entrypoint: usuarios_cli
     command: []
 
-
-
   #########################################################
   # Ajedrez. Un microservicio para jugar ajedrez.
   #########################################################
@@ -152,6 +160,76 @@ services:
   ajedrez-cli:
     <<: *ajedrez-base
     entrypoint: /app/ajedrez-cli
+    command: []
+
+  memorama:
+    <<: *memorama-base
+    restart: always
+    ports:
+      - "${MEMORAMA_PORT}:${MEMORAMA_PORT}"
+    develop:
+      watch:
+        - path: ./services/memorama
+          action: sync
+          target: /app
+          ignore:
+            - ./services/memorama/.venv
+        - path: ./services/memorama/pyproject.toml
+          action: rebuild
+    command:
+      - fastapi
+      - run
+      - --port
+      - ${MEMORAMA_PORT}
+      - --reload
+      - "app/main.py"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.memorama.entrypoints=http
+      - traefik.http.services.memorama.loadbalancer.server.port=${MEMORAMA_PORT}
+      - traefik.http.routers.memorama.rule=PathPrefix(`/api/memorama`)
+
+  memorama-frontend:
+    image: services/memorama-frontend
+    networks:
+      - traefik-public
+      - default
+    env_file:
+      - .env
+    build:
+      context: ./services/memorama/frontend
+      args:
+        - VITE_API_URL=http://${DOMAIN}/
+        - NODE_ENV=development
+    restart: always
+    develop:
+      watch:
+        - path: ./services/memorama/frontend/src
+          action: sync
+          target: /app/src
+        - path: ./services/memorama/frontend/public
+          action: sync
+          target: /app/public
+        - path: ./services/memorama/frontend/package.json
+          action: rebuild
+    ports:
+      - "${MEMORAMA_FRONTEND_PORT}:80"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.memorama-frontend.entrypoints=http
+      - traefik.http.services.memorama-frontend.loadbalancer.server.port=80
+      - traefik.http.routers.memorama-frontend.rule=PathPrefix(`/memorama`)
+
+  # Memorama CLI. Una herramienta para interactuar con el microservicio de memorama.
+  # Ejecutando desde el host:
+  # docker compose run --rm memorama-cli
+  memorama-cli:
+    <<: *memorama-base
+    entrypoint: memorama_cli
     command: []
 
   proxy:
@@ -196,6 +274,7 @@ volumes:
   cargo-target:
   usuarios-db:
   ajedrez-db:
+  memorama-db:
 
 networks:
   traefik-public:

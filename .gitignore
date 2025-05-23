@@ -1,6 +1,10 @@
 .vscode
-node_modules/
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
+**/node_modules
+**/.venv
+**/test-results
+**/playwright-report
+**/blob-report
+**/playwright/.cache
+*.pyc
+
+*.db
