@@ -1,4 +1,3 @@
-
 class GameRoom:
     def __init__(self):
         self.players = {}  # socket_id: {"role": "jugador1/jugador2", "ready": False, "secret": ""}
@@ -21,6 +20,9 @@ class GameRoom:
 
     def both_ready(self):
         return len(self.players) == 2 and all(p["ready"] for p in self.players.values())
+
+    def both_online(self):
+        return len(self.players) == 2
 
     def get_opponent(self, websocket):
         for ws in self.players:

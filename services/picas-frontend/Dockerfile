@@ -8,3 +8,4 @@ COPY logo.png /usr/share/nginx/html/juegos/picas/
 COPY favicon.ico /usr/share/nginx/html/juegos/picas/
 COPY logo2.png /usr/share/nginx/html/juegos/picas/
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+COPY loading.gif /usr/share/nginx/html/juegos/picas/

@@ -80,7 +80,10 @@ lockBtn.addEventListener('click', () => {
     input.style.borderColor = '#45e92f';
   });
 
-  guessArea.style.visibility = 'visible'; // Muestra el área de adivinar
+  //guessArea.style.visibility = 'visible'; // Muestra el área de adivinar
+
+  // Enviar el número secreto al backend
+  enviarNumeroSecreto(numeros.join(''));
 });
 
 //agregar evento al enter dependiendo de donde esté el cursor
@@ -157,17 +160,6 @@ guessBtn.addEventListener('click', () => {
 });
 
 
-const status_contrincante = document.querySelector('.status');
-
-//status cuando el contrincante no está listo #cc0000
-status_contrincante.style.color='#cc0000';
-status_contrincante.textContent = 'Esperando al contrincante...';
-
-//status cuando el contrincante ya está listo #ccff33
-status_contrincante.style.color='#ccff33';
-status_contrincante.textContent = '¡Contrincante listo!';
-
-
 // Limpiar los inputs al cargar la página
 window.addEventListener('DOMContentLoaded', () => { 
     const allInputs = document.querySelectorAll('.digit-input');
@@ -194,7 +186,9 @@ guessNums.forEach(input => {
   input.addEventListener('input', verificarInputsLlenos);
 });
 
+const status_contrincante = document.querySelector('.status');
 const socket = new WebSocket("ws://localhost:8096/juegos/picas-backend/ws");
+const waitOverlay = document.querySelector('.wait-background');
 let role = null;
 
 socket.addEventListener("message", (event) => {
@@ -206,16 +200,28 @@ socket.addEventListener("message", (event) => {
   }
 
   if (data.type === "status") {
-    console.log(data.message);
-    document.getElementById("contrincante-status").textContent = data.message;
+    if (data.status === "ready") {
+      status_contrincante.textContent = "¡Contrincante listo!";
+      status_contrincante.style.color = '#ccff33';
+    } else if (data.status === "waiting") {
+      status_contrincante.textContent = "Esperando al contrincante...";
+      status_contrincante.style.color = '#cc0000';
+    }
   }
 
-  if (data.type === "start") {
-    console.log("¡Ambos jugadores listos!");
-    document.getElementById("contrincante-status").textContent = "¡Contrincante listo!";
+  if (data.type === "both_connected") {
     document.getElementById("adivina-inputs").style.display = "block";
+    // Oculta la pantalla de espera
+    waitOverlay.classList.add('hidden');
+    setTimeout(() => {waitOverlay.remove();}, 500);
+  }
+
+  if (data.type === "opponent_left") {
+    // Si el oponente se desconecta, recarga la página para reiniciar el estado
+    window.location.reload();
   }
 });
+
 
 function enviarNumeroSecreto(numero) {
   socket.send(JSON.stringify({
@@ -241,7 +247,7 @@ async function cargarLeaderboard() {
       fila.innerHTML = `
       <td>${index + 1}</td>
       <td>${entry.jugador}</td>
-      <td>${entry.puntuacion}</td>)
+      <td>${entry.puntuacion}</td>
       `;
       leaderboardBody.appendChild(fila);
     });

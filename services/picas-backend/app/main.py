@@ -76,6 +76,17 @@ async def websocket_endpoint(websocket: WebSocket):
         return
 
     await websocket.send_json({"type": "role", "role": role})
+    # Enviar status inicial waiting
+    await websocket.send_json({"type": "status", "status": "waiting"})
+
+    # Si ambos jugadores están conectados, notifica a todos los clientes (para frontend: ocultar wait-background)
+    if room.both_online():
+        for ws in room.players:
+            await ws.send_json({"type": "both_connected"})
+
+    # Si ambos jugadores ya están listos, notifica a este cliente (para iniciar juego si recarga)
+    if room.both_ready():
+        await websocket.send_json({"type": "start"})
 
     try:
         while True:
@@ -86,16 +97,30 @@ async def websocket_endpoint(websocket: WebSocket):
                 room.set_ready(websocket, secret)
                 opponent = room.get_opponent(websocket)
 
-                await websocket.send_json({"type": "status", "message": "Esperando contrincante..."})
+                # Notificar al oponente si el jugador actual ya está listo
+                if opponent:
+                    await opponent.send_json({"type": "status", "status": "ready"})
+
+                # Solo notificar 'waiting' si NO están ambos listos
+                if not room.both_ready():
+                    await websocket.send_json({"type": "status", "status": "waiting"})
 
                 if room.both_ready():
                     # Notificar a ambos que ya pueden jugar
-                    await websocket.send_json({"type": "start"})
-                    if opponent:
-                        await opponent.send_json({"type": "start"})
+                    for ws in [websocket, opponent]:
+                        if ws:
+                            await ws.send_json({"type": "start"})
 
     except WebSocketDisconnect:
         room.remove_player(websocket)
+        # Reinicia el GameRoom y el estado de la partida si ya no quedan jugadores
+        if len(room.players) == 0:
+            room.players.clear()  # Limpia GameRoom
+            partidas[id_partida_fija] = Juego(id_partida_fija)  # Reinicia la partida
+        # Notificar al oponente que el jugador se fue
+        opponent = room.get_opponent(websocket)
+        if opponent:
+            await opponent.send_json({"type": "opponent_left"})
 
 id_partida_fija = "partida-unica"
 partidas: Dict[str, Juego] = {
