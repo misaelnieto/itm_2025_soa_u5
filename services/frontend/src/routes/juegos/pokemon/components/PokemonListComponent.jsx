@@ -10,7 +10,7 @@ function PokemonListComponent({ handleNextStep, pokemon }) {
     const fetchPokemons = async () => {
       try {
         const response = await fetch('/api/pokemon-service/pokemons')
-        // const response = await fetch('http://127.0.0.1:8084/api/pokemons')
+        // const response = await fetch('http://127.0.0.1:8083/api/pokemon-service/pokemons')
 
         if (!response.ok) {
           throw new Error(`Error: ${response.status}`)

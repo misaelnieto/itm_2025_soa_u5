@@ -166,6 +166,22 @@ function handleMatchmaking(ws, wss) {
       return;
     }
 
+    // Se verifica que los jugadores no hayan seleccionado el mismo Pokémon
+    if (ws.pokemon._id.toString() === opponent.pokemon._id.toString()) {
+      const errorMessage = JSON.stringify({
+        type: "error",
+        message: "No puedes seleccionar el mismo Pokémon que tu oponente"
+      });
+
+      ws.send(errorMessage);
+      
+      // Devolver ambos jugadores a la lista de espera, uno después del otro
+      opponent.send(JSON.stringify({ type: "waiting", message: "Esperando otro jugador..." }));
+      waitingPlayer = opponent;
+      
+      return;
+    }
+
     const roomId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
     ws.roomId = roomId;
@@ -437,9 +453,9 @@ function calculateMoveResult(attackerPokemon, defenderPokemon, moveName, players
   // Calcular daño básico (fórmula simplificada)
   const attackStat = move.type === "physical" ? attackerPokemon.stats.attack : attackerPokemon.stats.specialAttack;
   const defenseStat = move.type === "physical" ? defenderPokemon.stats.defense : defenderPokemon.stats.specialDefense;  // Fórmula de daño básica modificada para producir menos daño y alargar los combates
-  // Dividimos por 200 en lugar de 150 y aplicamos un factor adicional de 0.75
+  // Dividimos por 50 y aplicamos un factor adicional de 0.75
   const baseDamage = Math.floor(
-    ((2 * attackerPokemon.level / 5 + 2) * move.power * (attackStat / defenseStat) / 200) * 0.75 + 2
+    ((2 * attackerPokemon.level / 5 + 2) * move.power * (attackStat / defenseStat) / 50) * 0.75 + 2
   );
 
   // Aplicar modificador de tipo

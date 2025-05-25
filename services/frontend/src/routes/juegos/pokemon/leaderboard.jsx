@@ -113,7 +113,6 @@ function Leaderboard() {
                 <Table.ColumnHeader isNumeric>Partidas Perdidas</Table.ColumnHeader>
                 <Table.ColumnHeader isNumeric>Partidas totales</Table.ColumnHeader>
                 <Table.ColumnHeader isNumeric>Porcentaje</Table.ColumnHeader>
-                <Table.ColumnHeader>Rachas</Table.ColumnHeader>
               </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -172,26 +171,6 @@ function Leaderboard() {
                     >
                       {player.winRate}
                     </Badge>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <VStack spacing={2} align="start">
-                      <Progress.Root
-                        value={parseFloat(player.winRate)}
-                        colorScheme={
-                          parseFloat(player.winRate) > 60 ? "green" :
-                            parseFloat(player.winRate) > 40 ? "blue" : "red"
-                        }
-                        size="sm"
-                        width="100%"
-                        borderRadius="md"
-                      />
-                      <HStack spacing={2}>
-                        <Icon as={FaFire} color="orange.500" />
-                        <Text fontSize="xs" color="gray.500">
-                          {player.streakCount} Racha
-                        </Text>
-                      </HStack>
-                    </VStack>
                   </Table.Cell>
                 </Table.Row>
               ))}

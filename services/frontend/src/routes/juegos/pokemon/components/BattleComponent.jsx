@@ -19,7 +19,6 @@ function BattleComponent({ handleNextStep, battleData, username, selectedPokemon
     winner: null,
     battleEnded: false
   });
-
   // Animation states
   const [animationState, setAnimationState] = useState({
     attackAnimation: false,
@@ -153,12 +152,12 @@ function BattleComponent({ handleNextStep, battleData, username, selectedPokemon
     setGameState(prev => ({
       ...prev,
       battleLog: [
-        ...prev.battleLog,
         {
           message,
           timestamp: new Date().toISOString(),
           type
-        }
+        },
+        ...prev.battleLog
       ]
     }));
   };
@@ -306,7 +305,6 @@ function BattleComponent({ handleNextStep, battleData, username, selectedPokemon
   const calculateHpPercentage = (current, max) => {
     return Math.max(0, Math.min(100, (current / max) * 100));
   };
-
   // Get color for HP bar
   const getHpColor = (percentage) => {
     if (percentage > 50) return '#4CAF50';
@@ -330,6 +328,7 @@ function BattleComponent({ handleNextStep, battleData, username, selectedPokemon
       overflow: 'hidden',
       gap: '20px'
     }}>
+
       {/* Background elements */}
       <div style={{
         position: 'absolute',
