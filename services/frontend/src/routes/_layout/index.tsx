@@ -3,6 +3,7 @@ import { Box, Container, Text } from "@chakra-ui/react"
 import { Flex } from "@chakra-ui/react"
 import { createFileRoute } from "@tanstack/react-router"
 import { FaBowlingBall, FaChess } from "react-icons/fa"
+import { IoGameController } from "react-icons/io5"
 
 import useAuth from "@/hooks/useAuth"
 
@@ -30,6 +31,11 @@ function Dashboard() {
             description="Juega una partida de ajedrez contra los demás usarios."
             gameRoute="/juegos/ajedrez"
             leaderboardRoute="/juegos/ajedrez/leaderboard"
+          />          <GameCard            avatarSrc={IoGameController}
+            fallbackName="Connect4"
+            title="Connect 4"            description="Juega al clásico juego de Conecta 4 contra otros jugadores."
+            gameRoute="/juegos/connect4"
+            leaderboardRoute="/juegos/connect4/leaderboard"
           />
           <GameCard
             avatarSrc={FaBowlingBall}

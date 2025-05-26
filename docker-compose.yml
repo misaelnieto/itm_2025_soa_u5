@@ -154,49 +154,50 @@ services:
     entrypoint: /app/ajedrez-cli
     command: []
 
-  # MongoDB para el servicio de Pokemon
-  pokemon-db:
+  # MongoDB para el servicio de Connect4
+  connect4-db:
     image: mongo
     networks:
       - default
     volumes:
-      - pokemon-db:/data/db
+      - connect4-db:/data/db
     ports:
       - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
-      MONGO_INITDB_DATABASE: pokemon
-  pokemon:
-    image: services/pokemon
+      MONGO_INITDB_DATABASE: connect4
+  connect4:
+    image: services/connect4-game
     networks:
       - traefik-public
       - default
     env_file:
       - .env
     build:
-      context: ./services/pokemon
+      context: ./services/connect4-game
     restart: always
     develop:
       watch:
-        - path: ./services/pokemon/src
+        - path: ./services/connect4-game/src
           action: sync
           target: /app/src
-        - path: ./services/pokemon/package.json
+        - path: ./services/connect4-game/package.json
           action: rebuild
     ports:
-      - "${POKEMON_PORT}:8083"
+      - "8090:8090"
     depends_on:
-      - pokemon-db
+      - connect4-db
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
       - traefik.constraint-label=traefik-public
-      - traefik.http.routers.pokemon.entrypoints=http
-      - traefik.http.services.pokemon.loadbalancer.server.port=8083
-      - traefik.http.routers.pokemon.rule=PathPrefix(`/api/pokemon-service`)
+      - traefik.http.routers.connect4.entrypoints=http
+      - traefik.http.routers.connect4.middlewares=connect4-stripprefix
+      - traefik.http.services.connect4.loadbalancer.server.port=8090
+      - traefik.http.middlewares.connect4-stripprefix.stripprefix.prefixes=/api/connect4-service
+      - traefik.http.routers.connect4.rule=Host(`itm-soa.io`) && PathPrefix(`/api/connect4-service`)
   
-
   proxy:
     image: traefik:3.0
     volumes:
@@ -214,7 +215,7 @@ services:
       # Do not expose all Docker services, only the ones explicitly exposed
       - --providers.docker.exposedbydefault=false
       # Create an entrypoint "http" listening on port 80
-      # - --entrypoints.http.address=:80
+      - --entrypoints.http.address=:80
       # Enable the access log, with HTTP requests
       - --accesslog
       # Enable the Traefik log, for configurations and errors
@@ -240,6 +241,7 @@ volumes:
   usuarios-db:
   ajedrez-db:
   pokemon-db:
+  connect4-db:
 
 
 networks:

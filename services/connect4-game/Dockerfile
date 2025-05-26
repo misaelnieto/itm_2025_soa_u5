@@ -12,7 +12,7 @@ RUN npm install && npm install -g nodemon
 COPY . .
 
 # Exponer el puerto
-EXPOSE 8083
+EXPOSE 8090
 
 # Comando para iniciar la aplicación
 CMD ["npm", "run", "dev"]

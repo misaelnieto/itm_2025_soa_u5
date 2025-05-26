@@ -1,0 +1,52 @@
+const express = require('express');
+const path = require('path');
+const http = require('http');
+const mongoose = require('mongoose');
+const WebSocket = require('ws');
+const dbConfig = require('../config/db.config');
+const GameWebSocket = require('./websocket');
+
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+const PORT = 8090;
+
+// Conectar a MongoDB
+mongoose.connect(dbConfig.url, dbConfig.options)
+    .then(() => console.log('MongoDB conectado exitosamente.'))
+    .catch(err => console.error('Error al conectar a MongoDB:', err));
+
+// Middleware
+app.use(express.json());
+
+// Servir archivos estáticos
+app.use(express.static(path.join(__dirname, '../client')));
+
+// Rutas básicas
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/index.html'));
+});
+
+// Ruta de información del juego
+app.get('/info', (req, res) => {
+    res.json({
+        name: 'Connect 4',
+        description: 'Juega al clásico juego de Conecta 4 contra otros jugadores.',
+        currentPlayers: 0,
+        maxPlayers: 2,
+        status: 'active'
+    });
+});
+
+// Inicializar WebSocket
+const gameWebSocket = new GameWebSocket(wss);
+
+// Manejo de errores
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('¡Algo salió mal!');
+});
+
+server.listen(PORT, () => {
+    console.log(`Servidor Connect4 ejecutándose en el puerto ${PORT}`);
+});

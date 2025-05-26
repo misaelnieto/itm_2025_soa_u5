@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conecta 4 - Multijugador</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="login-screen" class="screen">
+            <h1>Conecta 4 - Multijugador</h1>
+            <div class="form-group">
+                <input type="text" id="username" placeholder="Tu nombre de usuario">
+                <button id="create-room">Crear Sala</button>
+                <div class="join-room">
+                    <input type="text" id="room-code" placeholder="Código de sala">
+                    <button id="join-room">Unirse a Sala</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen hidden">
+            <div class="game-info">
+                <h2>Sala: <span id="room-id"></span></h2>
+                <div id="turn-info">Turno de: <span id="current-turn"></span></div>
+            </div>
+            
+            <div class="board-container">
+                <div id="board" class="board"></div>
+            </div>
+
+            <div class="game-status">
+                <div id="status-message"></div>
+                <button id="new-game" class="hidden">Nueva Partida</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
