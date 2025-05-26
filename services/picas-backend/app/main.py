@@ -1,9 +1,11 @@
 #main.py
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from app.game_manager import GameRoom
 from typing import Dict
 import logging 
+from sqlalchemy.orm import Session
+import json
 
 from app.game import Juego
 from app.models import (
@@ -18,16 +20,13 @@ from app.models import (
     RespuestaLeaderboard
 )
 from app.database import Base, engine
-from app.db_models import Leaderboard
-from sqlalchemy.orm import Session
+from app.db_models import Leaderboard, Partida
+
 from app.database import SessionLocal
 
 def init_db(): #### Creacion de la base de datos 
     Base.metadata.create_all(bind=engine)
-
-    ######## REGISTROS DE PRUEBA ########
-
-    db= SessionLocal() # crea una sesion de la base de datos
+    db = SessionLocal()
     # Verifica si ya hay datos para evitar duplicados
     count = db.query(Leaderboard).count()
     if count == 0:
@@ -41,9 +40,12 @@ def init_db(): #### Creacion de la base de datos
         logging.info("Se insertaron 10 registros de prueba en Leaderboard")
     else:
         logging.info("La tabla Leaderboard ya tiene registros. NO se insertaron datos de prueba.")
+    # Inicializa la partida única si no existe
+    if not db.query(Partida).filter_by(id="partida-unica").first():
+        nueva = Partida(id="partida-unica", jugador1=None, jugador2=None, historial1=None, historial2=None)
+        db.add(nueva)
+        db.commit()
     db.close()
-
-
 
 app = FastAPI(title="API Picas y Fijas")
 room = GameRoom()
@@ -130,27 +132,92 @@ partidas: Dict[str, Juego] = {
 
 @app.post("/registrar", response_model=RespuestaGenerica)
 def registrar_jugador(req: SolicitudRegistroJugador):
-    # Registra el número secreto de un jugador
-    partida = partidas[id_partida_fija]
-    try:
-        partida.registrar_jugador(req.jugador, req.secreto)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    db: Session = SessionLocal()
+    partida_db = db.query(Partida).filter_by(id="partida-unica").first()
+    if not partida_db:
+        partida_db = Partida(id="partida-unica")
+        db.add(partida_db)
+        db.commit()
+        db.refresh(partida_db)
+    # Guardar el secreto en la columna correspondiente
+    if req.jugador == "jugador1":
+        partida_db.jugador1 = req.secreto
+    elif req.jugador == "jugador2":
+        partida_db.jugador2 = req.secreto
+    else:
+        db.close()
+        raise HTTPException(status_code=400, detail="Rol de jugador inválido")
+    db.commit()
+    db.close()
     return RespuestaGenerica(mensaje=f"Jugador {req.jugador} registrado exitosamente")
 
 @app.post("/intentar", response_model=RespuestaIntento)
-def realizar_intento(req: SolicitudIntento):
-    partida = partidas[id_partida_fija]
-    try:
-        fijas, picas = partida.intento(req.jugador, req.intento)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    intentos_realizados = len(partida.obtener_historial(req.jugador))
-    mensaje = "Sigue intentando"
-    if fijas == 5:
-        mensaje = f"Felicidades {req.jugador}! Has ganado."
-    return RespuestaIntento(fijas=fijas, picas=picas, intentos=intentos_realizados, mensaje=mensaje)
+def realizar_intento(req: SolicitudIntento, background_tasks: BackgroundTasks = None):
+    db: Session = SessionLocal()
+    partida_db = db.query(Partida).filter_by(id="partida-unica").first()
+    if not partida_db:
+        db.close()
+        raise HTTPException(status_code=400, detail="No existe la partida")
+    # Obtener el secreto del oponente
+    if req.jugador == "jugador1":
+        secreto_oponente = partida_db.jugador2
+        historial_key = "historial1"
+        oponente_rol = "jugador2"
+    elif req.jugador == "jugador2":
+        secreto_oponente = partida_db.jugador1
+        historial_key = "historial2"
+        oponente_rol = "jugador1"
+    else:
+        db.close()
+        raise HTTPException(status_code=400, detail="Rol de jugador inválido")
+    if not secreto_oponente:
+        db.close()
+        raise HTTPException(status_code=400, detail="El contrincante no ha registrado su número")
+    # Validar intento
+    intento = req.intento
+    if len(intento) != 5 or not intento.isdigit() or len(set(intento)) != 5:
+        db.close()
+        raise HTTPException(status_code=400, detail="El intento debe ser 5 dígitos únicos.")
+    # Calcular fijas y picas
+    fijas = sum(s == i for s, i in zip(secreto_oponente, intento))
+    picas = sum(min(secreto_oponente.count(d), intento.count(d)) for d in set(intento)) - fijas
+    # Guardar historial
+    historial = getattr(partida_db, historial_key)
+    if historial:
+        historial_list = json.loads(historial)
+    else:
+        historial_list = []
+    historial_list.append([intento, picas, fijas])
+    setattr(partida_db, historial_key, json.dumps(historial_list))
+    db.commit()
+    db.close()
+    # Enviar intento al oponente por WebSocket (si está conectado)
+    if background_tasks is not None:
+        background_tasks.add_task(send_opponent_guess_ws, oponente_rol, intento, picas, fijas, len(historial_list))
+    return RespuestaIntento(fijas=fijas, picas=picas, intentos=len(historial_list), intento=intento)
 
+# ---
+# Función para enviar el intento al oponente por WebSocket
+# ---
+async def send_opponent_guess_ws(oponente_rol, intento, picas, fijas, n_intentos):
+    ws = get_websocket_by_role(room, oponente_rol)
+    if ws:
+        await ws.send_json({
+            "type": "opponent_guess",
+            "intento": intento,
+            "picas": picas,
+            "fijas": fijas,
+            "intentos": n_intentos
+        })
+
+# ---
+# Utilidad para mapear rol a websocket
+# ---
+def get_websocket_by_role(room, role):
+    for ws, info in room.players.items():
+        if info["role"] == role:
+            return ws
+    return None
 
 @app.get("/historial/{jugador}", response_model=RespuestaHistorial)
 def obtener_historial(jugador: str):

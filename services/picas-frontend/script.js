@@ -53,7 +53,7 @@ const guessArea = document.querySelector('.adivinar');
 const lockBtn = document.querySelector('.lock-in');
 const msj = document.querySelector('.msj');
 
-lockBtn.addEventListener('click', () => {
+lockBtn.addEventListener('click', async () => {
   let allFilled = true;
   const numeros = [];
 
@@ -72,18 +72,32 @@ lockBtn.addEventListener('click', () => {
     msj.textContent = '';
   }
 
-  // Deshabilita y cambia color solo los inputs de guardar
-  numeroInputs.forEach(input => {
-    input.disabled = true;
-    input.style.backgroundColor = '#a1ff95';
-    input.style.color = '#1bab08';
-    input.style.borderColor = '#45e92f';
-  });
-
-  //guessArea.style.visibility = 'visible'; // Muestra el área de adivinar
-
-  // Enviar el número secreto al backend
-  enviarNumeroSecreto(numeros.join(''));
+  if (!miRol) {
+    msj.textContent = 'No se ha asignado tu rol. Espera la conexión.';
+    msj.style.color = 'red';
+    return;
+  }
+  try {
+    // Solo si el POST fue exitoso, deshabilita inputs y envía ready
+    await enviarNumeroSecreto(numeros.join(''), miRol);
+    numeroInputs.forEach(input => {
+      input.disabled = true;
+      input.style.backgroundColor = '#a1ff95';
+      input.style.color = '#1bab08';
+      input.style.borderColor = '#45e92f';
+    });
+    msj.textContent = 'Número secreto guardado correctamente';
+    msj.style.color = 'green';
+    // Enviar ready por WebSocket SOLO si el POST fue exitoso
+    socket.send(JSON.stringify({
+      type: "ready",
+      secret: numeros.join(''),
+      jugador: miRol
+    }));
+  } catch (error) {
+    msj.textContent = error.message;
+    msj.style.color = 'red';
+  }
 });
 
 //agregar evento al enter dependiendo de donde esté el cursor
@@ -110,9 +124,33 @@ document.addEventListener('keydown', (event) => {
 const guessNums = document.querySelectorAll('#adivina-inputs .digit-input');
 const guessBtn = document.querySelector('.guess-btn');
 const tablaBody = document.querySelector('.trys-table tbody');
-let intentoActual = 1;
+let intentos = [];
 
-guessBtn.addEventListener('click', () => {
+async function enviarIntento(jugador, intento) {
+  const response = await fetch("http://localhost:8096/intentar", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      id_partida: "partida-unica",
+      jugador: miRol,
+      intento: intento
+    })
+  });
+  console.log(`Enviando intento: ${intento} para el jugador: ${miRol}`);
+  if (!response.ok) {
+    let errorMsg = "Error al intentar adivinar";
+    try {
+      const errorData = await response.json();
+      if (errorData.detail) errorMsg = errorData.detail;
+    } catch {}
+    throw new Error(errorMsg);
+  }
+  return await response.json();
+}
+
+guessBtn.addEventListener('click', async () => {
   const numeros = [];
   let firstEmptyIndex = -1;
 
@@ -130,33 +168,51 @@ guessBtn.addEventListener('click', () => {
 
   const numero = numeros.join('');
 
-  const fila = document.createElement('tr');
-
-  const celdaIntento = document.createElement('td');
-  celdaIntento.textContent = intentoActual++;
-
-  const celdaNumero = document.createElement('td');
-  celdaNumero.textContent = numero;
-
-  const celdaPicas = document.createElement('td');
-  celdaPicas.textContent = 'n';
-
-  const celdaFijas = document.createElement('td');
-  celdaFijas.textContent = 'n';
-
-  fila.appendChild(celdaIntento);
-  fila.appendChild(celdaNumero);
-  fila.appendChild(celdaPicas);
-  fila.appendChild(celdaFijas);
-
-  tablaBody.appendChild(fila);
-
-  guessNums.forEach(input => {
-    input.value = '';
-  });
-
-  guessNums[0].focus();
-  guessBtn.style.visibility = 'hidden'; // Oculta el botón de adivinar
+  if (!miRol) {
+    msj.textContent = 'No se ha asignado tu rol. Espera la conexión.';
+    msj.style.color = 'red';
+    return;
+  }
+  try {
+    const response = await enviarIntento(miRol, numero);
+    // Manejar la respuesta del backend
+    const { intento, picas, fijas, intentos: nIntentos } = response;
+    intentos.unshift({
+      intento: numero,
+      picas: picas,
+      fijas: fijas,
+      intentos: nIntentos
+    });
+    // Limpiar la tabla
+    tablaBody.innerHTML = '';
+    // Renderizar los intentos en orden descendente
+    intentos.forEach((item, idx) => {
+      const fila = document.createElement('tr');
+      const celdaIntento = document.createElement('td');
+      celdaIntento.textContent = intentos.length - idx; // Descendente
+      const celdaNumero = document.createElement('td');
+      celdaNumero.textContent = item.intento;
+      const celdaPicas = document.createElement('td');
+      celdaPicas.textContent = item.picas;
+      const celdaFijas = document.createElement('td');
+      celdaFijas.textContent = item.fijas;
+      fila.appendChild(celdaIntento);
+      fila.appendChild(celdaNumero);
+      fila.appendChild(celdaPicas);
+      fila.appendChild(celdaFijas);
+      tablaBody.appendChild(fila);
+    });
+    // Limpiar los inputs después de enviar
+    guessNums.forEach(input => {
+      input.value = '';
+    });
+    guessNums[0].focus();
+    guessBtn.style.visibility = 'hidden';
+  } catch (error) {
+    msj.textContent = error.message;
+    msj.style.color = 'red';
+    console.error("Error al enviar el intento:", error);
+  }
 });
 
 
@@ -176,9 +232,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 // Función que se ejecuta cada vez que se escribe en un input
+// Asegúrate de mostrar el botón cuando los inputs estén llenos
 function verificarInputsLlenos() {
   const todosLlenos = Array.from(guessNums).every(input => input.value !== '');
   guessBtn.style.visibility = todosLlenos ? 'visible' : 'hidden';
+  guessBtn.disabled = !todosLlenos;
 }
 
 // Agrega un event listener a cada input del grupo de adivinar
@@ -189,15 +247,9 @@ guessNums.forEach(input => {
 const status_contrincante = document.querySelector('.status');
 const socket = new WebSocket("ws://localhost:8096/juegos/picas-backend/ws");
 const waitOverlay = document.querySelector('.wait-background');
-let role = null;
 
 socket.addEventListener("message", (event) => {
   const data = JSON.parse(event.data);
-
-  if (data.type === "role") {
-    role = data.role;
-    console.log("Tu rol:", role);
-  }
 
   if (data.type === "status") {
     if (data.status === "ready") {
@@ -216,19 +268,125 @@ socket.addEventListener("message", (event) => {
     setTimeout(() => {waitOverlay.remove();}, 500);
   }
 
+  if (data.type === "start") {
+    // Muestra el área de adivinar
+    guessArea.style.visibility = 'visible';
+    verificarInputsLlenos();
+  }
+
   if (data.type === "opponent_left") {
     // Si el oponente se desconecta, recarga la página para reiniciar el estado
     window.location.reload();
   }
+
+  // Manejar respuesta de intento (tipo guess_result o similar)
+  if (data.type === "guess_result" || data.type === "guessresponse" || data.type === "guess") {
+    // Se espera que data tenga: intento, picas, fijas, intentos
+    // Agregar el intento al arreglo y actualizar la tabla en orden descendente
+    intentos.unshift({
+      intento: data.intento,
+      picas: data.picas,
+      fijas: data.fijas,
+      intentos: data.intentos
+    });
+    // Limpiar la tabla
+    tablaBody.innerHTML = '';
+    // Renderizar los intentos en orden descendente
+    intentos.forEach((item, idx) => {
+      const fila = document.createElement('tr');
+      const celdaIntento = document.createElement('td');
+      celdaIntento.textContent = intentos.length - idx; // Descendente
+      const celdaNumero = document.createElement('td');
+      celdaNumero.textContent = item.intento;
+      const celdaPicas = document.createElement('td');
+      celdaPicas.textContent = item.picas;
+      const celdaFijas = document.createElement('td');
+      celdaFijas.textContent = item.fijas;
+      fila.appendChild(celdaIntento);
+      fila.appendChild(celdaNumero);
+      fila.appendChild(celdaPicas);
+      fila.appendChild(celdaFijas);
+      tablaBody.appendChild(fila);
+    });
+  }
+
+  // NUEVO: Actualizar la tabla de intentos del contrincante si llega un mensaje especial
+  if (data.type === "opponent_guess") {
+    // Mostrar el contenedor si estaba oculto
+    const vsContainer = document.querySelector('.vs-container');
+    if (vsContainer) vsContainer.style.visibility = 'visible';
+    // data debe tener: intento, picas, fijas, intentos
+    const vsTableBody = document.querySelector('.vs-table tbody');
+    if (!vsTableBody) return;
+    if (!window.intentosContrincante) window.intentosContrincante = [];
+    // Si ya existe un intento con el mismo número de intento, reemplázalo (evita duplicados/intermitencia)
+    const idxExistente = window.intentosContrincante.findIndex(x => x.intentos === data.intentos);
+    if (idxExistente !== -1) {
+      window.intentosContrincante[idxExistente] = {
+        intento: data.intento,
+        picas: data.picas,
+        fijas: data.fijas,
+        intentos: data.intentos
+      };
+    } else {
+      window.intentosContrincante.unshift({
+        intento: data.intento,
+        picas: data.picas,
+        fijas: data.fijas,
+        intentos: data.intentos
+      });
+    }
+    // Ordenar por número de intento ascendente (1,2,3...)
+    window.intentosContrincante.sort((a, b) => a.intentos - b.intentos);
+    // Limpiar la tabla
+    vsTableBody.innerHTML = '';
+    // Renderizar los intentos en orden ascendente (Intento 1 primero)
+    window.intentosContrincante.forEach((item) => {
+      const fila = document.createElement('tr');
+      const celdaIntentos = document.createElement('td');
+      celdaIntentos.textContent = item.intentos;
+      const celdaNumero = document.createElement('td');
+      celdaNumero.textContent = item.intento;
+      const celdaPicas = document.createElement('td');
+      celdaPicas.textContent = item.picas;
+      const celdaFijas = document.createElement('td');
+      celdaFijas.textContent = item.fijas;
+      fila.appendChild(celdaIntentos);
+      fila.appendChild(celdaNumero);
+      fila.appendChild(celdaPicas);
+      fila.appendChild(celdaFijas);
+      vsTableBody.appendChild(fila);
+    });
+  }
 });
 
 
-function enviarNumeroSecreto(numero) {
-  socket.send(JSON.stringify({
-    type: "ready",
-    secret: numero
-  }));
+async function enviarNumeroSecreto(numero, jugador) {
+  // 1. Registrar el número secreto vía HTTP
+  const response = await fetch("http://localhost:8096/registrar", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      id_partida: "partida-unica",
+      jugador: miRol,
+      secreto: numero
+    })
+  });
+  console.log(`Enviando número secreto: ${numero} para el jugador: ${miRol}`);
+  if (!response.ok) {
+    let errorMsg = "Error al registrar el número";
+    try {
+      const errorData = await response.json();
+      if (errorData.detail) errorMsg = errorData.detail;
+    } catch {}
+    throw new Error(errorMsg);
+  }
+  // Ya no enviar ready aquí, solo devolver la respuesta
+  return await response.json();
 }
+
 
 /////// Funcion para cargar Leaderboard
 async function cargarLeaderboard() {
@@ -256,3 +414,15 @@ async function cargarLeaderboard() {
     console.error("Error al cargar el leaderboard:", error);
   }
 }
+
+let miRol = null;
+
+// Conectar al WebSocket y asignar el rol del jugador
+socket.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  if (data.type === "role") {
+    miRol = data.role;  // guardar si eres jugador1 o jugador2
+  }
+};
+
+

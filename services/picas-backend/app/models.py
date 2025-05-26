@@ -20,7 +20,7 @@ class RespuestaIntento(BaseModel):
     fijas: int = Field(..., ge=0, le=5, description="Cantidad de dígitos en posición correcta")
     picas: int = Field(..., ge=0, le=5, description="Cantidad de dígitos en número pero en posición incorrecta")
     intentos: int = Field(..., ge=1, description="Número de intentos realizados por el jugador")
-    mensaje: str = Field(..., description="Mensaje de progreso o victoria")
+    intento: str = Field(..., description="Número intentado")
 
 class ItemHistorial(BaseModel):
     intento: str = Field(..., description="Número intentado")
