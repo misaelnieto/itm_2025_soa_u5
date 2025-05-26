@@ -247,6 +247,7 @@ guessNums.forEach(input => {
 const status_contrincante = document.querySelector('.status');
 const socket = new WebSocket("ws://localhost:8096/juegos/picas-backend/ws");
 const waitOverlay = document.querySelector('.wait-background');
+let historialInterval = null;
 
 socket.addEventListener("message", (event) => {
   const data = JSON.parse(event.data);
@@ -272,92 +273,29 @@ socket.addEventListener("message", (event) => {
     // Muestra el área de adivinar
     guessArea.style.visibility = 'visible';
     verificarInputsLlenos();
+
+    const vsContainer = document.querySelector('.vs-container');
+    vsContainer.style.visibility = 'visible';
+    // Iniciar polling SOLO al recibir 'start'
+    if (!historialInterval) {
+      historialInterval = setInterval(() => {
+        if (typeof cargarYRenderizarHistorial === 'function') {
+          cargarYRenderizarHistorial();
+        }
+      }, 1000);
+    }
   }
 
   if (data.type === "opponent_left") {
+    // Limpiar el intervalo si el oponente se va
+    if (historialInterval) {
+      clearInterval(historialInterval);
+      historialInterval = null;
+    }
     // Si el oponente se desconecta, recarga la página para reiniciar el estado
     window.location.reload();
   }
 
-  // Manejar respuesta de intento (tipo guess_result o similar)
-  if (data.type === "guess_result" || data.type === "guessresponse" || data.type === "guess") {
-    // Se espera que data tenga: intento, picas, fijas, intentos
-    // Agregar el intento al arreglo y actualizar la tabla en orden descendente
-    intentos.unshift({
-      intento: data.intento,
-      picas: data.picas,
-      fijas: data.fijas,
-      intentos: data.intentos
-    });
-    // Limpiar la tabla
-    tablaBody.innerHTML = '';
-    // Renderizar los intentos en orden descendente
-    intentos.forEach((item, idx) => {
-      const fila = document.createElement('tr');
-      const celdaIntento = document.createElement('td');
-      celdaIntento.textContent = intentos.length - idx; // Descendente
-      const celdaNumero = document.createElement('td');
-      celdaNumero.textContent = item.intento;
-      const celdaPicas = document.createElement('td');
-      celdaPicas.textContent = item.picas;
-      const celdaFijas = document.createElement('td');
-      celdaFijas.textContent = item.fijas;
-      fila.appendChild(celdaIntento);
-      fila.appendChild(celdaNumero);
-      fila.appendChild(celdaPicas);
-      fila.appendChild(celdaFijas);
-      tablaBody.appendChild(fila);
-    });
-  }
-
-  // NUEVO: Actualizar la tabla de intentos del contrincante si llega un mensaje especial
-  if (data.type === "opponent_guess") {
-    // Mostrar el contenedor si estaba oculto
-    const vsContainer = document.querySelector('.vs-container');
-    if (vsContainer) vsContainer.style.visibility = 'visible';
-    // data debe tener: intento, picas, fijas, intentos
-    const vsTableBody = document.querySelector('.vs-table tbody');
-    if (!vsTableBody) return;
-    if (!window.intentosContrincante) window.intentosContrincante = [];
-    // Si ya existe un intento con el mismo número de intento, reemplázalo (evita duplicados/intermitencia)
-    const idxExistente = window.intentosContrincante.findIndex(x => x.intentos === data.intentos);
-    if (idxExistente !== -1) {
-      window.intentosContrincante[idxExistente] = {
-        intento: data.intento,
-        picas: data.picas,
-        fijas: data.fijas,
-        intentos: data.intentos
-      };
-    } else {
-      window.intentosContrincante.unshift({
-        intento: data.intento,
-        picas: data.picas,
-        fijas: data.fijas,
-        intentos: data.intentos
-      });
-    }
-    // Ordenar por número de intento ascendente (1,2,3...)
-    window.intentosContrincante.sort((a, b) => a.intentos - b.intentos);
-    // Limpiar la tabla
-    vsTableBody.innerHTML = '';
-    // Renderizar los intentos en orden ascendente (Intento 1 primero)
-    window.intentosContrincante.forEach((item) => {
-      const fila = document.createElement('tr');
-      const celdaIntentos = document.createElement('td');
-      celdaIntentos.textContent = item.intentos;
-      const celdaNumero = document.createElement('td');
-      celdaNumero.textContent = item.intento;
-      const celdaPicas = document.createElement('td');
-      celdaPicas.textContent = item.picas;
-      const celdaFijas = document.createElement('td');
-      celdaFijas.textContent = item.fijas;
-      fila.appendChild(celdaIntentos);
-      fila.appendChild(celdaNumero);
-      fila.appendChild(celdaPicas);
-      fila.appendChild(celdaFijas);
-      vsTableBody.appendChild(fila);
-    });
-  }
 });
 
 
@@ -426,3 +364,36 @@ socket.onmessage = (event) => {
 };
 
 
+// Función para cargar y renderizar SOLO la tabla del contrincante
+async function cargarYRenderizarHistorial() {
+  if (!miRol) return;
+  try {
+    const contrincante = miRol === 'jugador1' ? 'jugador2' : 'jugador1';
+    const respVs = await fetch(`http://localhost:8096/historial/${contrincante}`);
+    const dataVs = await respVs.json();
+    const vsTableBody = document.querySelector('.vs-table tbody');
+    if (vsTableBody) {
+      vsTableBody.innerHTML = '';
+      // Ordenar historial de forma descendente (último intento primero)
+      const historialDesc = [...dataVs.historial].reverse();
+      historialDesc.forEach((item, idx) => {
+        const fila = document.createElement('tr');
+        const celdaIntento = document.createElement('td');
+        celdaIntento.textContent = historialDesc.length - idx; // Descendente
+        const celdaNumero = document.createElement('td');
+        celdaNumero.textContent = item.intento;
+        const celdaPicas = document.createElement('td');
+        celdaPicas.textContent = item.picas;
+        const celdaFijas = document.createElement('td');
+        celdaFijas.textContent = item.fijas;
+        fila.appendChild(celdaIntento);
+        fila.appendChild(celdaNumero);
+        fila.appendChild(celdaPicas);
+        fila.appendChild(celdaFijas);
+        vsTableBody.appendChild(fila);
+      });
+    }
+  } catch (e) {
+    // Silenciar errores de fetch
+  }
+}

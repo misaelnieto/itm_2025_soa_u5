@@ -118,7 +118,15 @@ async def websocket_endpoint(websocket: WebSocket):
         # Reinicia el GameRoom y el estado de la partida si ya no quedan jugadores
         if len(room.players) == 0:
             room.players.clear()  # Limpia GameRoom
-            partidas[id_partida_fija] = Juego(id_partida_fija)  # Reinicia la partida
+            partidas[id_partida_fija] = Juego(id_partida_fija)  # Reinicia la partida en memoria
+            # Limpiar historial en la base de datos
+            db: Session = SessionLocal()
+            partida_db = db.query(Partida).filter_by(id="partida-unica").first()
+            if partida_db:
+                partida_db.historial1 = None
+                partida_db.historial2 = None
+                db.commit()
+            db.close()
         # Notificar al oponente que el jugador se fue
         opponent = room.get_opponent(websocket)
         if opponent:
@@ -221,10 +229,27 @@ def get_websocket_by_role(room, role):
 
 @app.get("/historial/{jugador}", response_model=RespuestaHistorial)
 def obtener_historial(jugador: str):
-    partida = partidas[id_partida_fija]
-    historial_raw = partida.obtener_historial(jugador)
+    from sqlalchemy.orm import Session
+    import json
+    db: Session = SessionLocal()
+    partida_db = db.query(Partida).filter_by(id="partida-unica").first()
+    if not partida_db:
+        db.close()
+        raise HTTPException(status_code=400, detail="No existe la partida")
+    if jugador == "jugador1":
+        historial_json = partida_db.historial1
+    elif jugador == "jugador2":
+        historial_json = partida_db.historial2
+    else:
+        db.close()
+        raise HTTPException(status_code=400, detail="Rol de jugador inválido")
+    if historial_json:
+        historial_raw = json.loads(historial_json)
+    else:
+        historial_raw = []
     historial = [ItemHistorial(intento=h[0], picas=h[1], fijas=h[2]) for h in historial_raw]
-    return RespuestaHistorial(id_partida=id_partida_fija, jugador=jugador, historial=historial)
+    db.close()
+    return RespuestaHistorial(id_partida="partida-unica", jugador=jugador, historial=historial)
 
 @app.get("/estado", response_model=RespuestaEstadoPartida)
 def obtener_estado():
