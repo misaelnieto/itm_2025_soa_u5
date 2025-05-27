@@ -295,6 +295,26 @@ socket.addEventListener("message", (event) => {
     // Si el oponente se desconecta, recarga la página para reiniciar el estado
     window.location.reload();
   }
+ 
+  if (data.type === "game_over"){
+    //Mostrar mensaje de ganador
+    msj.textContent = `¡Juego terminado! Ganador: ${data.ganador}`;
+    msj.style.color = 'blue';
+
+    /// Deshabilitar inputs y botoenes para evitar mas jugadas
+    numeroInputs.forEach(input => input.disabled = true);
+    guessNums.forEach(input => input.disabled = true);
+    lockBtn.disabled = true;
+    guessBtn.disabled = true;
+
+    //// Detener cualquier intervalo que este corriendo datos
+    if (historialInterval) {
+      clearInterval(historialInterval);
+      historialInterval = null;
+    } 
+
+    // mostrar
+  }
 
 });
 

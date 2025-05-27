@@ -24,6 +24,7 @@ from app.db_models import Leaderboard, Partida
 
 from app.database import SessionLocal
 
+
 def init_db(): #### Creacion de la base de datos 
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
@@ -159,6 +160,7 @@ def registrar_jugador(req: SolicitudRegistroJugador):
     db.close()
     return RespuestaGenerica(mensaje=f"Jugador {req.jugador} registrado exitosamente")
 
+
 @app.post("/intentar", response_model=RespuestaIntento)
 def realizar_intento(req: SolicitudIntento, background_tasks: BackgroundTasks = None):
     db: Session = SessionLocal()
@@ -202,7 +204,29 @@ def realizar_intento(req: SolicitudIntento, background_tasks: BackgroundTasks = 
     # Enviar intento al oponente por WebSocket (si está conectado)
     if background_tasks is not None:
         background_tasks.add_task(send_opponent_guess_ws, oponente_rol, intento, picas, fijas, len(historial_list))
+    ####################
+    if fijas == 5:
+        partidas[id_partida_fija].finalizar_partida(req.jugador)
+
+        ### Enviar notificacion de fin de juego por websocket
+        if background_tasks is not None:
+            background_tasks.add_task(notificar_fin_juego_ws, req.jugador)
+    ######################
     return RespuestaIntento(fijas=fijas, picas=picas, intentos=len(historial_list), intento=intento)
+
+#---------
+# Funcion para notificar fin del juego
+#----------
+
+async def notificar_fin_juego_ws(ganador):
+    for ws in room.players:
+        if ws:
+            await ws.send_json({
+                "type": "game_over",
+                "ganador": ganador
+            })
+
+
 
 # ---
 # Función para enviar el intento al oponente por WebSocket

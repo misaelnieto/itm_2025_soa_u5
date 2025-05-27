@@ -9,7 +9,24 @@ class Juego:
         # Historial de intentos: lista de tuplas (intento, picas, fijas)
         self.intentos: Dict[str, List[Tuple[str, int, int]]] = {} # Almacena los intentos de cada jugador
         ###puntuacion
-        self.puntuaciones: Dict[str, int] = {}
+        #self.puntuaciones: Dict[str, int] = {}
+        self.puntuaciones = {
+            "jugador1":0,
+            "jugador2":0
+        }
+        self.finalizada = False
+        self.ganador = None
+
+    def finalizar_partida(self, ganador: str):
+        """
+        Marca la partida como finalizada
+        """
+        self.finalizada = True
+        self.ganador = ganador
+        self.puntuaciones[ganador] += 1000  # Asignar puntos al ganador
+
+
+
 
     def registrar_jugador(self, jugador: str, secreto: str) -> None: # esta linea es para el registro de los jugadores
         """
@@ -72,7 +89,7 @@ class Juego:
         for intentos in self.intentos.values():
             if intentos and intentos[-1][2] == 5:
                 return True
-        return False
+        return self.finalizada
 
     def obtener_ganador(self) -> str:
         """
@@ -81,7 +98,19 @@ class Juego:
         for jugador, intentos in self.intentos.items():
             if intentos and intentos[-1][2] == 5:
                 return jugador
-        return None
+        return self.ganador
     ### para puntuacion
     def obtener_puntuacion(self, jugador: str) -> int:
         return self.puntuaciones.get(jugador, 0)
+
+    def reinicar(self):
+        """
+        Opcional: reinicar la partida para una nueva partida
+        """
+        self.finalizada = False
+        self.ganador = None
+        self.puntuaciones = {
+            "jugador": 0,
+            "jugador2": 0
+        }
+        
