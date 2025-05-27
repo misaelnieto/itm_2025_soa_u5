@@ -110,7 +110,7 @@ class Juego:
         self.finalizada = False
         self.ganador = None
         self.puntuaciones = {
-            "jugador": 0,
+            "jugador1": 0,
             "jugador2": 0
         }
         

@@ -6,6 +6,7 @@ from typing import Dict
 import logging 
 from sqlalchemy.orm import Session
 import json
+import asyncio
 
 from app.game import Juego
 from app.models import (
@@ -207,7 +208,7 @@ def realizar_intento(req: SolicitudIntento, background_tasks: BackgroundTasks = 
     ####################
     if fijas == 5:
         partidas[id_partida_fija].finalizar_partida(req.jugador)
-
+   
         ### Enviar notificacion de fin de juego por websocket
         if background_tasks is not None:
             background_tasks.add_task(notificar_fin_juego_ws, req.jugador)
@@ -221,10 +222,10 @@ def realizar_intento(req: SolicitudIntento, background_tasks: BackgroundTasks = 
 async def notificar_fin_juego_ws(ganador):
     for ws in room.players:
         if ws:
-            await ws.send_json({
+            asyncio.create_task (ws.send_json({
                 "type": "game_over",
                 "ganador": ganador
-            })
+            }))
 
 
 
