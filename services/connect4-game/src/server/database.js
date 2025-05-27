@@ -10,8 +10,7 @@ const inMemoryDB = {
 async function connectDB() {
     try {
         console.log('Conectando a MongoDB...');
-        await mongoose.connect(dbConfig.url, {
-            ...dbConfig.options,
+        await mongoose.connect('mongodb://root:example@connect4-db:27017/connect4?authSource=admin&ssl=false', {
             serverSelectionTimeoutMS: 5000, // Tiempo de espera para la selección del servidor
             socketTimeoutMS: 45000, // Tiempo de espera para las operaciones
         });

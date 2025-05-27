@@ -2,33 +2,29 @@ import { createFileRoute } from "@tanstack/react-router"
 import { useState, useEffect } from "react"
 import {
   Box,
-  Heading,
-  Table,
-  Text,
-  Badge,
-  Flex,
-  Card,
-  CardHeader,
-  CardBody,
-  Spinner,
-  Avatar,
-  HStack,
-  VStack,
-  Progress,
-  Icon,
   Center,
-  Button,
 } from "@chakra-ui/react"
-import { FaTrophy, FaFire } from "react-icons/fa"
-import { GiBattleGear, GiTrophyCup } from "react-icons/gi"
 
 export const Route = createFileRoute("/juegos/connect4/leaderboard")({
   component: Leaderboard,
 })
 
+type Player = {
+  username: string
+  wins: number
+  losses: number
+  matches: number
+  winRate: string
+  streakCount?: number
+  rank: number
+  avatarColor: string
+  badge: string
+}
+
 function Leaderboard() {
-  const [leaderboardData, setLeaderboardData] = useState([])
+  const [leaderboardData, setLeaderboardData] = useState<Player[]>([])
   const [loading, setLoading] = useState(true)
+  console.log(leaderboardData);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,7 +33,7 @@ function Leaderboard() {
         const response = await fetch("/api/connect4-service/leaderboard")
         const data = await response.json()
         
-        const enhancedData = data.map((player, index) => ({
+        const enhancedData = data.map((player: any, index: any) => ({
           ...player,
           rank: index + 1,
           avatarColor: index === 0 ? "yellow.400" : index === 1 ? "gray.400" : "orange.400",
@@ -58,17 +54,17 @@ function Leaderboard() {
   if (loading) {
     return (
       <Center h="500px">
-        <VStack spacing={4}>
+        {/* <VStack spacing={4}>
           <Spinner size="xl" color="blue.500" thickness="4px" speed="0.65s" />
           <Text fontSize="lg">Cargando tabla de posiciones...</Text>
-        </VStack>
+        </VStack> */}
       </Center>
     )
   }
 
   return (
     <Box p={6}>
-      <Card.Root shadow="xl" rounded="lg" overflow="hidden" borderWidth="1px">
+      {/* <Card.Root shadow="xl" rounded="lg" overflow="hidden" borderWidth="1px">
         <CardHeader py={4} px={6} color="white" borderBottomWidth="1px">
           <Flex justify="space-between" align="center">
             <Button variant="ghost" colorScheme="blue" size="sm" onClick={() => window.history.go(-1)}>
@@ -91,10 +87,10 @@ function Leaderboard() {
               <Table.Row>
                 <Table.ColumnHeader textAlign="center" width="80px">Rank</Table.ColumnHeader>
                 <Table.ColumnHeader>Jugador</Table.ColumnHeader>
-                <Table.ColumnHeader isNumeric>Partidas ganadas</Table.ColumnHeader>
-                <Table.ColumnHeader isNumeric>Partidas Perdidas</Table.ColumnHeader>
-                <Table.ColumnHeader isNumeric>Partidas totales</Table.ColumnHeader>
-                <Table.ColumnHeader isNumeric>Porcentaje</Table.ColumnHeader>
+                <Table.ColumnHeader>Partidas ganadas</Table.ColumnHeader>
+                <Table.ColumnHeader>Partidas Perdidas</Table.ColumnHeader>
+                <Table.ColumnHeader>Partidas totales</Table.ColumnHeader>
+                <Table.ColumnHeader>Porcentaje</Table.ColumnHeader>
                 <Table.ColumnHeader>Rachas</Table.ColumnHeader>
               </Table.Row>
             </Table.Header>
@@ -172,7 +168,7 @@ function Leaderboard() {
             </Table.Body>
           </Table.Root>
         </CardBody>
-      </Card.Root>
+      </Card.Root> */}
     </Box>
   )
 }

@@ -153,16 +153,27 @@ async function handleJoinRoom(ws, data) {
         ws.username = data.username;
         ws.playerId = player._id;
 
-        room.status = 'playing';
-
-        // Notificar a ambos jugadores
-        broadcastToRoom(data.roomId, {
-            type: 'game_start',
+        // Primero enviar el mensaje de join_success al jugador 2
+        ws.send(JSON.stringify({
+            type: 'join_success',
+            roomId: data.roomId,
             gameState: {
                 board: room.game.getBoard(),
                 currentTurn: room.game.getCurrentPlayer()
             }
-        });
+        }));
+        room.status = 'playing';
+
+        // Luego notificar a ambos jugadores que el juego comienza con un pequeño delay
+        setTimeout(() => {
+            broadcastToRoom(data.roomId, {
+                type: 'game_start',
+                gameState: {
+                    board: room.game.getBoard(),
+                    currentTurn: room.game.getCurrentPlayer()
+                }
+            });
+        }, 1000); // Delay para asegurar que el cliente procese los mensajes en orden
     } catch (error) {
         console.error('Error al unirse a la sala:', error);
         ws.send(JSON.stringify({

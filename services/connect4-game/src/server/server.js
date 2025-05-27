@@ -3,33 +3,36 @@ const path = require('path');
 const http = require('http');
 const WebSocket = require('ws');
 const mongoose = require('mongoose');
+const cors = require('cors');
+const { connectDB } = require('./database');
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-const PORT = 8090;
+const PORT = process.env.PORT || 8090;
 
-// Conectar a MongoDB
-const mongoUrl = 'mongodb://127.0.0.1:27017/connect4';
-mongoose.connect(mongoUrl, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 5000,
-    socketTimeoutMS: 45000,
-})
-.then(() => console.log('✅ Conectado a MongoDB'))
-.catch(err => {
-    console.error('❌ Error al conectar a MongoDB:', err);
-    // No detenemos el servidor si falla la conexión a MongoDB
-    // para permitir el juego sin persistencia de datos
-});
+// Middleware
+app.use(cors());
+app.use(express.json());
 
 // Servir archivos estáticos
 app.use(express.static(path.join(__dirname, '../client')));
 
+// Conectar a MongoDB
+connectDB();
+
 // Rutas básicas
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/index.html'));
+});
+
+// Rutas REST
+app.post('/api/backend-connect4', (req, res) => {
+    const { username } = req.body;
+    if (!username) {
+        return res.status(400).json({ error: 'Se requiere un nombre de usuario' });
+    }
+    res.json({ message: 'Conexión exitosa' });
 });
 
 // Ruta para el leaderboard

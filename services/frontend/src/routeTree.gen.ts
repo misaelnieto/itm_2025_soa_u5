@@ -18,7 +18,9 @@ import { Route as LayoutIndexImport } from './routes/_layout/index'
 import { Route as LayoutSettingsImport } from './routes/_layout/settings'
 import { Route as LayoutLeaderboardImport } from './routes/_layout/leaderboard'
 import { Route as LayoutAdminImport } from './routes/_layout/admin'
+import { Route as JuegosConnect4IndexImport } from './routes/juegos/connect4/index'
 import { Route as JuegosAjedrezIndexImport } from './routes/juegos/ajedrez/index'
+import { Route as JuegosConnect4LeaderboardImport } from './routes/juegos/connect4/leaderboard'
 import { Route as JuegosAjedrezLeaderboardImport } from './routes/juegos/ajedrez/leaderboard'
 
 // Create/Update Routes
@@ -58,8 +60,18 @@ const LayoutAdminRoute = LayoutAdminImport.update({
   getParentRoute: () => LayoutRoute,
 } as any)
 
+const JuegosConnect4IndexRoute = JuegosConnect4IndexImport.update({
+  path: '/juegos/connect4/',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const JuegosAjedrezIndexRoute = JuegosAjedrezIndexImport.update({
   path: '/juegos/ajedrez/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const JuegosConnect4LeaderboardRoute = JuegosConnect4LeaderboardImport.update({
+  path: '/juegos/connect4/leaderboard',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -104,8 +116,16 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JuegosAjedrezLeaderboardImport
       parentRoute: typeof rootRoute
     }
+    '/juegos/connect4/leaderboard': {
+      preLoaderRoute: typeof JuegosConnect4LeaderboardImport
+      parentRoute: typeof rootRoute
+    }
     '/juegos/ajedrez/': {
       preLoaderRoute: typeof JuegosAjedrezIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/juegos/connect4/': {
+      preLoaderRoute: typeof JuegosConnect4IndexImport
       parentRoute: typeof rootRoute
     }
   }
@@ -123,7 +143,9 @@ export const routeTree = rootRoute.addChildren([
   LoginRoute,
   JuegosIndexRoute,
   JuegosAjedrezLeaderboardRoute,
+  JuegosConnect4LeaderboardRoute,
   JuegosAjedrezIndexRoute,
+  JuegosConnect4IndexRoute,
 ])
 
 /* prettier-ignore-end */

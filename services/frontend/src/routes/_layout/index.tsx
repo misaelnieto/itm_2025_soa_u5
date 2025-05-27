@@ -31,19 +31,14 @@ function Dashboard() {
             description="Juega una partida de ajedrez contra los demás usarios."
             gameRoute="/juegos/ajedrez"
             leaderboardRoute="/juegos/ajedrez/leaderboard"
-          />          <GameCard            avatarSrc={IoGameController}
+          />          
+          <GameCard            
+            avatarSrc={IoGameController}
             fallbackName="Connect4"
-            title="Connect 4"            description="Juega al clásico juego de Conecta 4 contra otros jugadores."
+            title="Connect 4"            
+            description="Juega al clásico juego de Conecta 4 contra otros jugadores."
             gameRoute="/juegos/connect4"
             leaderboardRoute="/juegos/connect4/leaderboard"
-          />
-          <GameCard
-            avatarSrc={FaBowlingBall}
-            fallbackName="Pokemon"
-            title="Pokemon"
-            description="Juega una partida de pokemon contra los demás usarios."
-            gameRoute="/juegos/pokemon"
-            leaderboardRoute="/juegos/pokemon/leaderboard"
           />
         </Flex>
       </Container>
