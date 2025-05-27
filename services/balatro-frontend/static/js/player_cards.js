@@ -106,6 +106,19 @@ document.addEventListener('DOMContentLoaded', function () {
         //await drawCardsForP1();
     });
 
+    const token = localStorage.getItem('access_token');
+
+    fetch('http://itm-soa.io/api/usuarios/test-token', {
+    method: 'POST',
+    headers: {
+        'Authorization': `Bearer ${token}`
+    }
+    })
+    .then(response => response.json())
+    .then(data => {console.log(data);
+        document.getElementById("player-name").textContent = data.user_id;
+    })
+    .catch(error => console.error('Error:', error));
 
     window.playerHand = null;
     window.score = 0;

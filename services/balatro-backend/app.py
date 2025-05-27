@@ -30,38 +30,6 @@ waiting_player = None
 sessions = {}
 game_states = {}
 
-# top_player_score = [
-#     {
-#         "id": 45,
-#         "score": 2310,
-#         "date": "2025-01-09"
-#     },
-#     {
-#         "id": 310,
-#         "score": 2301,
-#         "date": "2025-04-10"
-#     },
-#     {
-#         "id": 19,
-#         "score": 2298,
-#         "date": "2024-11-02"
-#     },
-#     {
-#         "id": 99,
-#         "score": 2293,
-#         "date": "2024-03-30"
-#     },
-#     {
-#         "id": 411,
-#         "score": 2285,
-#         "date": "2023-12-20"
-#     },
-#     {
-#         "id": 543,
-#         "score": 2280,
-#         "date": "2023-09-22"
-#     },
-# ]
 
 
 
@@ -336,3 +304,5 @@ if __name__ == '__main__':
 #     score INTEGER NOT NULL,
 #     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 # );
+
+
