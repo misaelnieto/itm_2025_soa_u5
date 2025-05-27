@@ -56,6 +56,7 @@ function App() {
     const wsUrl = `${wsProtocol}//${window.location.hostname}:8083/ws`;
     console.log("Conectando a WebSocket:", wsUrl);
 
+    // Crear una nueva conexión WebSocket
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
@@ -102,6 +103,7 @@ function App() {
       });
     };
 
+    // Limpiar la conexión cuando el componente se desmonte
     return () => {
       if (ws && ws.readyState === WebSocket.OPEN) {
         ws.close();
