@@ -233,11 +233,14 @@ services:
       - traefik.http.routers.balatro-backend.middlewares=balatro-backend-strip
       - traefik.http.middlewares.balatro-backend-strip.stripprefix.prefixes=/juegos/balatro-backend
       - traefik.http.services.balatro-backend.loadbalancer.server.port=80
+    volumes:
+      - balatro-db:/app/data
 volumes:
   cargo-cache:
   cargo-target:
   usuarios-db:
   ajedrez-db:
+  balatro-db:
 
 networks:
   traefik-public:

@@ -1,43 +1,108 @@
+let socket;
+let userName = null;
+const token = localStorage.getItem('access_token');
+
+function fetchUserName(){
+    fetch('http://itm-soa.io/api/usuarios/test-token', {
+    method: 'POST',
+    headers: {
+        'Authorization': `Bearer ${token}`
+    }
+})
+    .then(response => response.json())
+    .then(data => {
+        console.log(data);
+        userName = data.user_id;
+
+        socket = io('localhost:8088', {
+            path: '/juegos/balatro-backend/socket.io',
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            forceNew: true,
+            upgrade: true,
+            rememberUpgrade: true,
+            autoConnect: true,
+            auth: {
+                name: userName
+            }
+        });
+
+        socket.on('connect', () => {
+            console.log("Connected! My SID:", socket.id);
+            console.log("Transport:", socket.io.engine.transport.name);
+        });
+
+        socket.on('connect_error', (error) => {
+            console.error('Connection error:', error);
+            console.error('Error details:', {
+                message: error.message,
+                description: error.description,
+                type: error.type,
+                context: error
+            });
+        });
+
+        socket.on('connect_timeout', (timeout) => {
+            console.error('Connection timeout:', timeout);
+        });
+
+        socket.on('reconnect_attempt', (attemptNumber) => {
+            console.log('Reconnection attempt:', attemptNumber);
+        });
+
+        socket.on('reconnect_failed', () => {
+            console.error('Failed to reconnect');
+        });
+
+        socket.on('connect', () => {
+            sid = socket.id;
+            console.log("Mi SID: " + sid);
+        });
+
+        socket.on('update_turn', (data) => {
+            opponent.textContent = `It's player ${data.current_turn}'s turn`;
+        });
+        socket.on('game_over', (data) => {
+
+            if (data.win == 0) {
+                image_final.src = lose;
+            }
+
+            if (data.win == 1) {
+                image_final.src = win;
+            }
+
+            if (data.win == 2) {
+                image_final.src = tie;
+            }
+
+            h2_final.textContent = data.score;
+
+            final.style.display = 'inline-block';
+
+            leaderboard.style.display = 'flex';
+        });
+        socket.on('matched', (data) => {
+
+        window.playerHand = data.player_hand;
+        window.last_score = window.score;
 
 
-let socket = io('localhost:8088', {
-    path: '/juegos/balatro-backend/socket.io',
-    transports: ['websocket', 'polling'],
-    reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
-    forceNew: true,
-    upgrade: true,
-    rememberUpgrade: true,
-    autoConnect: true
-});
+        loadingScreen.remove();
+        console.log(`Matched!! loading the room ${data.room}`);
+        // Before loading cards, we should wait for someone
 
-socket.on('connect', () => {
-    console.log("Connected! My SID:", socket.id);
-    console.log("Transport:", socket.io.engine.transport.name);
-});
-
-socket.on('connect_error', (error) => {
-    console.error('Connection error:', error);
-    console.error('Error details:', {
-        message: error.message,
-        description: error.description,
-        type: error.type,
-        context: error
+        loadCards();
     });
-});
+        // Now socket has the correct auth from the start
+    })
+    .catch(error => console.error('Error:', error));
 
-socket.on('connect_timeout', (timeout) => {
-    console.error('Connection timeout:', timeout);
-});
 
-socket.on('reconnect_attempt', (attemptNumber) => {
-    console.log('Reconnection attempt:', attemptNumber);
-});
+}
 
-socket.on('reconnect_failed', () => {
-    console.error('Failed to reconnect');
-});
 
 let sid = null;
 // ... existing code ...
@@ -47,10 +112,7 @@ let win = "https://media.istockphoto.com/id/1447471637/video/you-win-glitch-4k-v
 let lose = "https://motionarray.imgix.net/motion-array-3081970-Ib6GvahUCf-high_0014.jpg?w=660&q=60&fit=max&auto=format"
 let tie = "https://media.tenor.com/wyfhYqF1tJIAAAAe/mark-wahlberg-wahlberg.png";
 
-socket.on('connect', () => {
-    sid = socket.id;
-    console.log("Mi SID: " + sid);
-});
+
 
 
 
@@ -63,9 +125,6 @@ let h2_final = document.getElementsByClassName('final-h2')[0];
 let leaderboard = document.getElementsByClassName('leaderboard-button')[0];
 
 
-socket.on('update_turn', (data) => {
-    opponent.textContent = `It's player ${data.current_turn}'s turn`;
-});
 
 
 
@@ -106,36 +165,13 @@ document.addEventListener('DOMContentLoaded', function () {
         //await drawCardsForP1();
     });
 
-    const token = localStorage.getItem('access_token');
-
-    fetch('http://itm-soa.io/api/usuarios/test-token', {
-    method: 'POST',
-    headers: {
-        'Authorization': `Bearer ${token}`
-    }
-    })
-    .then(response => response.json())
-    .then(data => {console.log(data);
-        document.getElementById("player-name").textContent = data.user_id;
-    })
-    .catch(error => console.error('Error:', error));
-
+    document.getElementById("player-name").textContent = userName;
     window.playerHand = null;
     window.score = 0;
     window.last_score = 0
 
-    socket.on('matched', (data) => {
-
-        window.playerHand = data.player_hand;
-        window.last_score = window.score;
-
-
-        loadingScreen.remove();
-        console.log(`Matched!! loading the room ${data.room}`);
-        // Before loading cards, we should wait for someone
-
-        loadCards();
-    });
+    fetchUserName();
+    
 
 });
 
@@ -174,16 +210,16 @@ function paintCard(card) {
             let pokerCard = cardElement.closest('.poker-card');
 
             if (selectedCardsTags.includes(cardTitle)) {
-            selectedCardsTags = selectedCardsTags.filter(c => c !== cardTitle);
-            pokerCard.classList.remove('selected');
+                selectedCardsTags = selectedCardsTags.filter(c => c !== cardTitle);
+                pokerCard.classList.remove('selected');
             } else {
-            if (selectedCardsTags.length < 5) {
-                selectedCardsTags.push(cardTitle);
-                pokerCard.classList.add('selected');
-            }
+                if (selectedCardsTags.length < 5) {
+                    selectedCardsTags.push(cardTitle);
+                    pokerCard.classList.add('selected');
+                }
             }
         });
-        });
+    });
 }
 
 async function playHand() {
@@ -378,23 +414,3 @@ async function discardInAPI(cards) {
 
 
 
-socket.on('game_over', (data) => {
-
-    if (data.win == 0) {
-        image_final.src = lose;
-    }
-
-    if (data.win == 1) {
-        image_final.src = win;
-    }
-
-    if (data.win == 2) {
-        image_final.src = tie;
-    }
-
-    h2_final.textContent = data.score;
-
-    final.style.display = 'inline-block';
-
-    leaderboard.style.display = 'flex';
-});

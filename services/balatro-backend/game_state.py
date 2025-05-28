@@ -5,6 +5,8 @@ class GameState():
     def __init__(self):
         self.p1_sid = None
         self.p2_sid = None
+        self.p1_name = None
+        self.p2_name = None
         self.p1_score = 0
         self.p2_score = 0
         self.p1_last_score = 0

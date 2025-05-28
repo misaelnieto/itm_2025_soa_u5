@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from game_state import GameState
 from services.score_handler import score_hand
@@ -6,9 +6,7 @@ import uuid
 import eventlet
 from flask_cors import CORS
 import logging
-from db import get_connection
-from datetime import datetime
-
+from db import create_tables, get_leaderboard, insert_score
 
 eventlet.monkey_patch()
 
@@ -26,7 +24,8 @@ socketio = SocketIO(app,
 game_state = GameState()
 
 
-waiting_player = None
+first_player = None
+first_player_name = None
 sessions = {}
 game_states = {}
 
@@ -37,18 +36,21 @@ logging.basicConfig(level=logging.INFO)
 
 @socketio.on('connect')
 def handle_connect(auth):
-    
+    if auth is None:
+        auth = {}
+    user_name = auth.get('name')
+    logging.info(f"User connected: {user_name}")
 	
-    global waiting_player
+    global first_player
+    global first_player_name
     
-    logging.info("Connect")
-    print("Si recibio 'connect' el socket")
     #sid significa session id
     sid = request.sid
 
 
-    if(waiting_player is None):
-        waiting_player = sid
+    if(first_player is None):
+        first_player = sid
+        first_player_name = auth.get('name')
         print(f"{sid} is waiting someone to play with")
 
         emit('message', {'message': 'We are matching you with someone else'})
@@ -57,30 +59,32 @@ def handle_connect(auth):
         print('There is a second player')
         #Hay un jugador esperando, y como se esta conectando un nuevo jugador se debe de crear una sala para ambos
         room_id = str(uuid.uuid4())  
-        socketio.server.enter_room(waiting_player, room_id)
+        socketio.server.enter_room(first_player, room_id)
         socketio.server.enter_room(sid, room_id)
 
         #Guardar la sesion
-        sessions[waiting_player] = room_id
+        sessions[first_player] = room_id
         sessions[sid] = room_id
 
         # Crear un estado independiente por sala
         state = GameState()
-        state.p1_sid = waiting_player
+        state.p1_sid = first_player
+        state.p1_name = first_player_name
         state.p2_sid = sid
+        state.p2_name = auth.get('name')
 
 
         # Guardar el estado 
         game_states[room_id] = state
 
         # Imprimir en el backend que se creo una nueva sala
-        print(f"{waiting_player} and {sid} were matched{room_id}")
+        print(f"{first_player} and {sid} were matched{room_id}")
 
         # Emitir el evento
-        emit('matched', { 'room': room_id, 'player_hand':state.p1_hand_handler.hand }, to=waiting_player)
+        emit('matched', { 'room': room_id, 'player_hand':state.p1_hand_handler.hand }, to=first_player)
         emit('matched', { 'room': room_id, 'player_hand':state.p2_hand_handler.hand }, to=sid)
 
-        waiting_player = None
+        first_player = None
 
 
 @app.route('/play_hand', methods=['POST'])
@@ -151,37 +155,8 @@ def play_hand():
 
 
             #  <---  Inicio leaderboard
-
-            connH = get_connection()
-            cursorH = connH.cursor()
-            now = datetime.now()
-
-            # Insertar puntaje del jugador 1
-            cursorH.execute("SELECT name FROM leaderboard WHERE name = ?",(player1_name,))
-            result1 = cursorH.fetchone()
-            if result1 is None:
-                # No existe un puntaje del usuario en el leaderboard
-                cursorH.execute("INSERT INTO leaderboard (name,score,room) values (?,?,?)", (player1_name, game_state.p1_score, room_id))
-            else:
-                # Ya existia un puntaje
-                cursorH.execute("UPDATE leaderboard SET score = ?, room = ?, date = ? WHERE name = ?",(game_state.p1_score, room_id, now, player1_name))
-
-
-            # Insertar puntaje del jugador 2
-            cursorH.execute("SELECT name FROM leaderboard where name = ?",(player2_name,))
-            result2 = cursorH.fetchone()
-            if result2 is None:
-                # No existe un puntaje del usuario en el leaderboard
-                cursorH.execute("INSERT INTO leaderboard (name,score,room) values (?,?,?)",(player2_name, game_state.p2_score, room_id))
-            else:
-                # Ya existia un puntaje
-                cursorH.execute("UPDATE leaderboard SET score = ?, room = ?, date = ? WHERE name = ?",(game_state.p2_score, room_id, now, player2_name))
-
-
-            connH.commit()   # Guardar los cambios en la database
-            connH.close()
-
-            #  <---  Fin leaderboard
+            insert_score(game_state.p1_name, game_state.p1_score)
+            insert_score(game_state.p2_name, game_state.p2_score)
 
 
 
@@ -295,32 +270,19 @@ def draw_cards():
 
 @app.route('/leaderboard')
 def leaderboard():
-
-    connL = get_connection()
-    cursorL = connL.cursor()
-
-    cursorL.execute("SELECT name, score, date FROM leaderboard ORDER BY score DESC LIMIT 10")
-    rows = cursorL.fetchall()
-
-    top_players_score = [{
-            "name": row[0],
-            "score": row[1],
-            "date": row[2]
-        } for row in rows]
-
-    connL.close()
+    top_players_score = get_leaderboard()
     return jsonify(top_players_score)
+
+@app.route('/insert_score', methods=['POST'])
+def insert_score_request():
+    data = request.get_json()
+    player_name = data.get('name')
+    player_score = data.get('score')
+    insert_score(player_name, player_score)
+    return jsonify({"message": "Score inserted successfully"})
 
 
 if __name__ == '__main__':
+    create_tables()
     socketio.run(app, host='0.0.0.0', port=80, debug=True, allow_unsafe_werkzeug=True)
-
-
-# CREATE TABLE leaderboard (
-#     name VARCHAR(30) NOT NULL PRIMARY KEY,
-#     room TEXT NOT NULL,
-#     score INTEGER NOT NULL,
-#     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-# );
-
 
