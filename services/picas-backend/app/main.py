@@ -1,5 +1,5 @@
 #main.py
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, BackgroundTasks
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, BackgroundTasks, Body
 from fastapi.middleware.cors import CORSMiddleware
 from app.game_manager import GameRoom
 from typing import Dict
@@ -18,7 +18,9 @@ from app.models import (
     ItemHistorial,
     RespuestaEstadoPartida,
     EntradaLeaderboard,
-    RespuestaLeaderboard
+    RespuestaLeaderboard,
+    SolicitudActualizarEstado
+
 )
 from app.database import Base, engine
 from app.db_models import Leaderboard, Partida
@@ -162,6 +164,24 @@ def registrar_jugador(req: SolicitudRegistroJugador):
     return RespuestaGenerica(mensaje=f"Jugador {req.jugador} registrado exitosamente")
 
 
+@app.post("/actualizar-estado", response_model=RespuestaEstadoPartida)
+def actualizar_estado(req: SolicitudActualizarEstado):
+    partida = partidas.get(req.id_partida)
+    if not partida:
+        raise HTTPException(status_code=404, detail="Partida no encontrada")
+    if req.finalizada:
+        partida.finalizar_partida(req.ganador)
+        if req.ganador:
+            if not hasattr(partida, 'puntuaciones'):
+                partida.puntuaciones = {}
+            partida.puntuaciones[req.ganador] = req.puntuacion or 0
+    return RespuestaEstadoPartida(
+        id_partida=req.id_partida,
+        finalizada=req.finalizada,
+        ganador=req.ganador,
+        puntuacion=req.puntuacion
+    )
+
 @app.post("/intentar", response_model=RespuestaIntento)
 def realizar_intento(req: SolicitudIntento, background_tasks: BackgroundTasks = None):
     db: Session = SessionLocal()
@@ -212,8 +232,10 @@ def realizar_intento(req: SolicitudIntento, background_tasks: BackgroundTasks = 
         ### Enviar notificacion de fin de juego por websocket
         if background_tasks is not None:
             background_tasks.add_task(notificar_fin_juego_ws, req.jugador)
+        return RespuestaIntento(fijas=fijas, picas=picas, intentos=len(historial_list), intento=intento, finalizada=True)
+
     ######################
-    return RespuestaIntento(fijas=fijas, picas=picas, intentos=len(historial_list), intento=intento)
+    return RespuestaIntento(fijas=fijas, picas=picas, intentos=len(historial_list), intento=intento, finalizada=False)
 
 #---------
 # Funcion para notificar fin del juego
@@ -284,26 +306,30 @@ def obtener_estado():
     partida = partidas[id_partida_fija]
     finalizada=partida.esta_finalizado()
     ganador=partida.obtener_ganador()
-    puntuacion = None
+    puntuacion = 0
+
+    for jugador, intentos in partida.intentos.items():
+        if intentos and intentos[-1][2] == 5:
+            finalizada = True
+            ganador = jugador
+            puntuacion = getattr(partida, 'puntuaciones', {}).get(ganador, puntuacion)
+            break
 
     if finalizada and ganador:
-        puntuacion = partida.puntuaciones[ganador]
-        #### ##############
-        db: Session = SessionLocal()
-        existe = db.query(Leaderboard).filter_by(jugador=ganador, puntuacion=puntuacion).first()
-        if not existe:
-
-            nueva_entrada = Leaderboard(jugador=ganador, puntuacion=puntuacion)
-            db.add(nueva_entrada)
-            db.commit()
-        db.close()
-
         return RespuestaEstadoPartida(
             id_partida=id_partida_fija,
             finalizada=finalizada,
             ganador=ganador,
-            puntuacion=puntuacion
-        )
+            puntuacion=puntuacion        
+            )
+    
+        # SIEMPRE devolver un objeto válido aunque no haya ganador
+    return RespuestaEstadoPartida(
+        id_partida=id_partida_fija,
+        finalizada=False,
+        ganador=None,
+        puntuacion=None
+    )
 ### se#######
 @app.get("/leaderboard", response_model=RespuestaLeaderboard)
 def obtener_leaderboard():
@@ -316,6 +342,15 @@ def obtener_leaderboard():
         for i, entrada in enumerate(resultados)
 ]
     return RespuestaLeaderboard(top=entradas)
+
+@app.post("/insert_leaderboard")
+def insert_leaderboard(jugador: str = Body(...), puntuacion: int = Body(...)):
+    db: Session = SessionLocal()
+    nueva_entrada = Leaderboard(jugador=jugador, puntuacion=puntuacion)
+    db.add(nueva_entrada)
+    db.commit()
+    db.close()
+    return {"message": f"Entrada agregada: {jugador} - {puntuacion}"}
 
 @app.get("/")
 def root():

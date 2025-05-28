@@ -21,6 +21,7 @@ class RespuestaIntento(BaseModel):
     picas: int = Field(..., ge=0, le=5, description="Cantidad de dígitos en número pero en posición incorrecta")
     intentos: int = Field(..., ge=1, description="Número de intentos realizados por el jugador")
     intento: str = Field(..., description="Número intentado")
+    finalizada: bool = Field(..., description="Indica si la partida ha terminado")
 
 class ItemHistorial(BaseModel):
     intento: str = Field(..., description="Número intentado")
@@ -37,6 +38,13 @@ class RespuestaEstadoPartida(BaseModel):
     finalizada: bool = Field(..., description="Indica si la partida ha terminado")
     ganador: Optional[str] = Field(None, description="Jugador ganador o None si aún no hay ganador")
     puntuacion: Optional[int] = Field(None, description="Puntuación final del ganador") ### Puntuacion
+
+
+class SolicitudActualizarEstado(BaseModel):
+    id_partida: str
+    finalizada: bool
+    ganador: str | None = None
+    puntuacion: int | None = None
 
 class Juego:
     def __init__(self, id_partida: str):

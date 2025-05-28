@@ -150,6 +150,36 @@ async function enviarIntento(jugador, intento) {
   return await response.json();
 }
 
+async function actualizarEstadoPartida(id_partida, finalizada, ganador, puntuacion) {
+  const response = await fetch("http://localhost:8096/actualizar-estado", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      id_partida,
+      finalizada,
+      ganador,
+      puntuacion
+    })
+  });
+  if (!response.ok) {
+    let errorMsg = "Error al actualizar el estado";
+    try {
+      const errorData = await response.json();
+      if (errorData.detail) errorMsg = errorData.detail;
+    } catch {}
+    throw new Error(errorMsg);
+  }
+  return await response.json();
+}
+
+async function obtenerEstadoPartida() {
+  const response = await fetch("http://localhost:8096/estado");
+  if (!response.ok) throw new Error("No se pudo obtener el estado de la partida");
+  return await response.json();
+}
+
 guessBtn.addEventListener('click', async () => {
   const numeros = [];
   let firstEmptyIndex = -1;
@@ -168,6 +198,24 @@ guessBtn.addEventListener('click', async () => {
 
   const numero = numeros.join('');
 
+    try {
+    const estado = await obtenerEstadoPartida();
+    if (estado.finalizada) {
+      msj.textContent = `¡Juego terminado! Ganador: ${estado.ganador} con ${estado.puntuacion} puntos`;
+      msj.style.color = 'blue';
+      numeroInputs.forEach(input => input.disabled = true);
+      guessNums.forEach(input => input.disabled = true);
+      lockBtn.disabled = true;
+      guessBtn.disabled = true;
+      return;
+    }
+
+  } catch (e) {
+    msj.textContent = "No se pudo verificar el estado de la partida";
+    msj.style.color = 'red';
+    return;
+  }
+
   if (!miRol) {
     msj.textContent = 'No se ha asignado tu rol. Espera la conexión.';
     msj.style.color = 'red';
@@ -183,6 +231,14 @@ guessBtn.addEventListener('click', async () => {
       fijas: fijas,
       intentos: nIntentos
     });
+
+    await actualizarEstadoPartida(
+    "partida-unica",
+    response.finalizada,
+    response.finalizada ? miRol : null,
+    response.finalizada ? response.puntuacion : null
+    );
+
     // Limpiar la tabla
     tablaBody.innerHTML = '';
     // Renderizar los intentos en orden descendente
@@ -208,7 +264,44 @@ guessBtn.addEventListener('click', async () => {
     });
     guessNums[0].focus();
     guessBtn.style.visibility = 'hidden';
-  } catch (error) {
+  
+  if (fijas === 5) {
+     
+
+    const puntaje = Math.max(0, 5000 - (nIntentos * 18));
+
+    const test = JSON.stringify({
+          jugador: name_user,
+          puntuacion: puntaje
+        });
+    console.log(test);
+      
+
+          await fetch("http://localhost:8096/insert_leaderboard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jugador: name_user,
+          puntuacion: puntaje
+        })
+      });
+
+
+      msj.textContent = `¡Juego terminado! Ganador: ${miRol} con ${response.puntuacion || '???'} puntos`;
+      msj.style.color = 'blue';
+      numeroInputs.forEach(input => input.disabled = true);
+      guessNums.forEach(input => input.disabled = true);
+      lockBtn.disabled = true;
+      guessBtn.disabled = true;
+      if (historialInterval) {
+        clearInterval(historialInterval);
+        historialInterval = null;
+      }
+      // El backend ya se actualiza solo
+      return;
+    }
+  }
+  catch (error) {
     msj.textContent = error.message;
     msj.style.color = 'red';
     console.error("Error al enviar el intento:", error);
@@ -216,6 +309,7 @@ guessBtn.addEventListener('click', async () => {
 });
 
 let nombre_usuario = document.querySelector('.nombre-jugador');
+let name_user = "";
 // Función para obtener y mostrar el nombre de usuario autenticado en .msj o en un elemento específico
 function mostrarNombreUsuario() {
   const token = localStorage.getItem('access_token');
@@ -234,6 +328,7 @@ function mostrarNombreUsuario() {
         playerNameElem.textContent = data.user_id;
       } else if (msj) {
         nombre_usuario.textContent = data.user_id;
+        name_user= data.user_id;
       }
     })
     .catch(error => console.error('Error:', error));
@@ -441,5 +536,4 @@ async function cargarYRenderizarHistorial() {
     // Silenciar errores de fetch
   }
 }
-
 
