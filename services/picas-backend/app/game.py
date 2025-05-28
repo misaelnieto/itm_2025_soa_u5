@@ -73,10 +73,10 @@ class Juego:
         
         self.puntuaciones[jugador] -= 18
 # -------------------------------- DETECTA EL GANADOR ------------------------ 
-        self.intentos[jugador].append((intento, picas, fijas))
+        
         if fijas == 5: 
             self.finalizar_partida(jugador)
-        
+        self.intentos[jugador].append((intento, picas, fijas))
         return fijas, picas
 # ----------------------------------------------------------------------------
 
@@ -90,18 +90,18 @@ class Juego:
         """
         Retorna True si alguno de los jugadores obtuvo 5 fijas en su ultimo intento.
         """
-       # for intentos in self.intentos.values():
-        #    if intentos and intentos[-1][2] == 5:
-         #       return True
+        for intentos in self.intentos.values():
+            if intentos and intentos[-1][2] == 5:
+                return True
         return self.finalizada
 
     def obtener_ganador(self) -> str:
         """
         Retorna el nombre del jugador que gano, o None si no hay ganador aun.
         """
-      #  for jugador, intentos in self.intentos.items():
-        #    if intentos and intentos[-1][2] == 5:
-          #      return jugador
+        for jugador, intentos in self.intentos.items():
+            if intentos and intentos[-1][2] == 5:
+                return jugador
         return self.ganador
     ### para puntuacion
     def obtener_puntuacion(self, jugador: str) -> int:
