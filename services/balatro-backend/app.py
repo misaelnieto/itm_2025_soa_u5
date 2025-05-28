@@ -157,25 +157,25 @@ def play_hand():
             now = datetime.now()
 
             # Insertar puntaje del jugador 1
-            cursorH.execute("SELECT id FROM leaderboard WHERE id = ?",(player1_id,))
+            cursorH.execute("SELECT name FROM leaderboard WHERE name = ?",(player1_name,))
             result1 = cursorH.fetchone()
             if result1 is None:
                 # No existe un puntaje del usuario en el leaderboard
-                cursorH.execute("INSERT INTO leaderboard (id,score,room) values (?,?,?)", (player1_id, game_state.p1_score, room_id))
+                cursorH.execute("INSERT INTO leaderboard (name,score,room) values (?,?,?)", (player1_name, game_state.p1_score, room_id))
             else:
                 # Ya existia un puntaje
-                cursorH.execute("UPDATE leaderboard SET score = ?, room = ?, date = ? WHERE id = ?",(game_state.p1_score, room_id, now, player1_id))
+                cursorH.execute("UPDATE leaderboard SET score = ?, room = ?, date = ? WHERE name = ?",(game_state.p1_score, room_id, now, player1_name))
 
 
             # Insertar puntaje del jugador 2
-            cursorH.execute("SELECT id FROM leaderboard where id = ?",(player2_id,))
+            cursorH.execute("SELECT name FROM leaderboard where name = ?",(player2_name,))
             result2 = cursorH.fetchone()
             if result2 is None:
                 # No existe un puntaje del usuario en el leaderboard
-                cursorH.execute("INSERT INTO leaderboard (id,score,room) values (?,?,?)",(player2_id, game_state.p2_score, room_id))
+                cursorH.execute("INSERT INTO leaderboard (name,score,room) values (?,?,?)",(player2_name, game_state.p2_score, room_id))
             else:
                 # Ya existia un puntaje
-                cursorH.execute("UPDATE leaderboard SET score = ?, room = ?, date = ? WHERE id = ?",(game_state.p2_score, room_id, now, player2_id))
+                cursorH.execute("UPDATE leaderboard SET score = ?, room = ?, date = ? WHERE name = ?",(game_state.p2_score, room_id, now, player2_name))
 
 
             connH.commit()   # Guardar los cambios en la database
@@ -299,7 +299,7 @@ if __name__ == '__main__':
 
 
 # CREATE TABLE leaderboard (
-#     id SERIAL PRIMARY KEY,
+#     name VARCHAR(30) NOT NULL PRIMARY KEY,
 #     room TEXT NOT NULL,
 #     score INTEGER NOT NULL,
 #     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP

@@ -20,7 +20,7 @@
             <!-- Cabecera -->
             <ul class="ranking">
                 <li style="background-color: #d6e4f0; font-weight: bold;">
-                    <span class="id">ID</span>
+                    <span class="name">Name</span>
                     <span class="score">Score</span>
                     <span class="date">Date</span>
                 </li>
@@ -28,7 +28,7 @@
                 <!-- Datos -->
                 {% for player in top_players %}
                 <li>
-                    <span class="id">{{ player.id }}</span>
+                    <span class="id">{{ player.name }}</span>
                     <span class="score">{{ player.score }}</span>
                     <span class="date">{{ player.date }}</span>
                 </li>
