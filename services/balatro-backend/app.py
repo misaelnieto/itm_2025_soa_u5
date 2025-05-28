@@ -293,6 +293,24 @@ def draw_cards():
 
 
 
+@app.route('/leaderboard')
+def leaderboard():
+
+    connL = get_connection()
+    cursorL = connL.cursor()
+
+    cursorL.execute("SELECT name, score, date FROM leaderboard ORDER BY score DESC LIMIT 10")
+    rows = cursorL.fetchall()
+
+    top_players_score = [{
+            "name": row[0],
+            "score": row[1],
+            "date": row[2]
+        } for row in rows]
+
+    connL.close()
+    return jsonify(top_players_score)
+
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=80, debug=True, allow_unsafe_werkzeug=True)
