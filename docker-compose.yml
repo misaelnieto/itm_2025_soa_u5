@@ -240,7 +240,6 @@ volumes:
   cargo-target:
   usuarios-db:
   ajedrez-db:
-  pokemon-db:
   connect4-db:
 
 
