@@ -3,6 +3,7 @@ import { Box, Container, Text } from "@chakra-ui/react"
 import { Flex } from "@chakra-ui/react"
 import { createFileRoute } from "@tanstack/react-router"
 import { FaChess } from "react-icons/fa"
+import { FaBullseye } from "react-icons/fa";
 
 import useAuth from "@/hooks/useAuth"
 
@@ -30,6 +31,15 @@ function Dashboard() {
             description="Juega una partida de ajedrez contra los demás usarios."
             gameRoute="/juegos/ajedrez"
             leaderboardRoute="/juegos/ajedrez/leaderboard"
+          />
+
+          <GameCard
+            avatarSrc={FaBullseye}
+            fallbackName="Picas y fijas"
+            title="Picas y fijas"
+            description="Juega una partida de picas y fijas contra otro usuario"
+            gameRoute="/juegos/picas"
+            leaderboardRoute="/juegos/picas/leaderboard"
           />
         </Flex>
       </Container>

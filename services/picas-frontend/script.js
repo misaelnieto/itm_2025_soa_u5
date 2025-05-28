@@ -215,13 +215,37 @@ guessBtn.addEventListener('click', async () => {
   }
 });
 
+let nombre_usuario = document.querySelector('.nombre-jugador');
+// Función para obtener y mostrar el nombre de usuario autenticado en .msj o en un elemento específico
+function mostrarNombreUsuario() {
+  const token = localStorage.getItem('access_token');
+  if (!token) return;
+  fetch('http://itm-soa.io/api/usuarios/test-token', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  })
+    .then(response => response.json())
+    .then(data => {
+      // Si existe el elemento con id player-name, úsalo; si no, usa .msj
+      const playerNameElem = document.getElementById("player-name");
+      if (playerNameElem) {
+        playerNameElem.textContent = data.user_id;
+      } else if (msj) {
+        nombre_usuario.textContent = data.user_id;
+      }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
 
 // Limpiar los inputs al cargar la página
-window.addEventListener('DOMContentLoaded', () => { 
-    const allInputs = document.querySelectorAll('.digit-input');
-  
-    allInputs.forEach(input => {
-    input.value = '';  input.value = '';
+window.addEventListener('DOMContentLoaded', () => {
+  mostrarNombreUsuario();
+  const allInputs = document.querySelectorAll('.digit-input');
+  allInputs.forEach(input => {
+    input.value = '';
     input.disabled = false;
     input.style.backgroundColor = '';
     input.style.color = '';
@@ -417,3 +441,5 @@ async function cargarYRenderizarHistorial() {
     // Silenciar errores de fetch
   }
 }
+
+
