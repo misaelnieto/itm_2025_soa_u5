@@ -25,9 +25,9 @@ class Juego:
         """
         self.finalizada = True
         self.ganador = ganador
-        # self.puntuaciones[ganador] += 1000 ## Asignar puntos al ganador
-        num_intentos = len(self.intentos[ganador])
-        self.puntuaciones[ganador] = max(500 - (num_intentos * 18), 0)
+        self.puntuaciones[ganador] += 1000 ## Asignar puntos al ganador
+        #num_intentos = len(self.intentos[ganador])
+        #self.puntuaciones[ganador] = max(500 - (num_intentos * 18), 0)
 
         db = SessionLocal()
         entrada = Leaderboard(jugador = ganador, puntuacion = self.puntuaciones[ganador])

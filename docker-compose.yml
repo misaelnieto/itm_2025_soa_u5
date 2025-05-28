@@ -240,7 +240,7 @@ services:
       - traefik.http.routers.picas-backend.middlewares=picas-backend-strip
       - traefik.http.middlewares.picas-backend-strip.stripprefix.prefixes=/juegos/picas-backend
     volumes:
-    - picas-db:/app/data
+      - picas-db:/app/data
 
 
 volumes:
