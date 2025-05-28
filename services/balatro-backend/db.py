@@ -27,7 +27,13 @@ def get_leaderboard():
     cursor.execute("SELECT name, score, date FROM leaderboard ORDER BY score DESC LIMIT 10")
     rows = cursor.fetchall()
     conn.close()
-    return rows
+
+    leaderboard = [
+        {"name": row[0], "score": row[1], "date": str(row[2])[:10]}
+        for row in rows
+    ]
+    return leaderboard
+
 
 def insert_score(name, score):
     connection = get_connection()
