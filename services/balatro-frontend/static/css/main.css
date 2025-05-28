@@ -148,3 +148,32 @@ body {
 #game-container{
         padding: 20px;
 }
+
+
+
+.leaderboard-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #ff3c3c, #3b6ff3); /* rojo y azul */
+    border: none;
+    border-radius: 50%;
+    width: 72px; /* antes 60px */
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 9999;
+}
+
+.leaderboard-button:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.leaderboard-button img {
+    width: 36px; /* antes 30px */
+    height: 36px;
+}
