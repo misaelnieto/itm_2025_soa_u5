@@ -39,7 +39,7 @@ function Dashboard() {
             title="Picas y fijas"
             description="Juega una partida de picas y fijas contra otro usuario"
             gameRoute="/juegos/picas"
-            leaderboardRoute="/juegos/picas/leaderboard"
+            leaderboardRoute="/juegos/picas/leaderboard.html"
           />
         </Flex>
       </Container>

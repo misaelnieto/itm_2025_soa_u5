@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Lilita+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dosis:wght@200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
+
+.titulo {
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    height: 150px;
+    text-align: center;
+}
+
+.logo-img {
+  width: 150px;
+  height: 100px;
+  object-fit: contain;
+}
+
+h1 {
+    color: #1b4cc9;
+    text-align: center;
+    font-size: 2rem;
+    margin-top: 5px;
+    text-shadow:
+        -1px -1px 0 white,
+         1px -1px 0 white,
+        -1px  1px 0 white,
+         1px  1px 0 white;
+    font-family: "Lilita One", sans-serif;
+    font-style: normal;
+}
+
+body {
+    background-image: linear-gradient(#fa9205, #ffb92d);
+    background-repeat: no-repeat;
+    height: 100vh; /* Asegura que el body tenga la altura de la ventana */
+    margin: 0 10px 0 10px;
+    padding: 0;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pagina {
+    width: 70%
+}
+.container {
+    padding: 5px;
+    height: calc(100vh - 200px);
+    border-radius: 10px;
+    border: 5px solid #ffbd54;
+    color: white;
+    column-gap: 0;
+}
+
+.container > div {
+    box-sizing: border-box;
+    padding: 5px;
+    text-align: center;
+}
+
+.leaderboard {
+    width: 100%;
+    background-color: black;
+    border-style: solid;
+    border-color:#ffd683;
+    border-width: 5px;
+    color: white;
+}
+
+.leaderboard-content{
+    width:100%;
+}
+
+.leaderboard-table {
+    width: 100%;
+    margin-top: 10px;
+}
+
+
+.leaderboard-table td{
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+
+#subtitulo{
+    font-family: "Dosis", sans-serif;
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+#quicksand, td {
+    font-family: "Quicksand", sans-serif;
+}
+
+.leaderboard-table th{
+    font-family: "Dosis", sans-serif;
+    text-align: center;
+}
+
