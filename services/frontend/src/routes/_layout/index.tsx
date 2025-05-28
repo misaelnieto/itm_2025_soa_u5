@@ -39,7 +39,7 @@ function Dashboard() {
             title="Balatro"
             description="Juega una partida de balatro contra los demás usarios."
             gameRoute="/juegos/balatro"
-            leaderboardRoute="/juegos/balatro/leaderboard"
+            leaderboardRoute="/juegos/balatro/leaderboardBalatro"
           />
         </Flex>
       </Container>
