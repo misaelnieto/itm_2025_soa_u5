@@ -220,11 +220,13 @@ def realizar_intento(req: SolicitudIntento, background_tasks: BackgroundTasks = 
 #----------
 
 async def notificar_fin_juego_ws(ganador):
+    juego = partidas["partida-unica"]
     for ws in room.players:
         if ws:
             asyncio.create_task (ws.send_json({
                 "type": "game_over",
-                "ganador": ganador
+                "ganador": ganador,
+                "puntuacion": juego.obtener_puntuacion(ganador)
             }))
 
 

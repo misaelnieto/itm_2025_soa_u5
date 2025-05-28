@@ -1,5 +1,7 @@
 #game.py
 from typing import List, Dict, Tuple
+from app.db_models import Leaderboard
+from app.database import SessionLocal
 
 class Juego:
     def __init__(self, id_partida: str):
@@ -23,8 +25,13 @@ class Juego:
         """
         self.finalizada = True
         self.ganador = ganador
-        self.puntuaciones[ganador] += 1000  # Asignar puntos al ganador
+        self.puntuaciones[ganador] += 1000 # Asignar puntos al ganador
 
+        db = SessionLocal()
+        entrada = Leaderboard(jugador = ganador, puntuacion = self.puntuaciones[ganador])
+        db.add(entrada)
+        db.commit()
+        db.close()
 
 
 
@@ -62,19 +69,14 @@ class Juego:
         fijas = sum(s == i for s, i in zip(secreto, intento))
         picas = sum(min(secreto.count(d), intento.count(d)) for d in set(intento)) - fijas
         
-        ### actulizar puntuacion de los jugadores
         self.puntuaciones[jugador] -= 18
-        numero_intentos = len(self.intentos[jugador]) + 1
-        if fijas == 5:
-            if numero_intentos == 1:
-                self.puntuaciones[jugador] += 1000
-            elif numero_intentos == 2:
-                self.puntuaciones[jugador] += 500
-
-        # Guardar intento en el historial
+# -------------------------------- DETECTA EL GANADOR ------------------------ 
+        
+        if fijas == 5: 
+            self.finalizar_partida(jugador)
         self.intentos[jugador].append((intento, picas, fijas))
-
         return fijas, picas
+# ----------------------------------------------------------------------------
 
     def obtener_historial(self, jugador: str) -> List[Tuple[str, int, int]]:
         """
@@ -86,18 +88,18 @@ class Juego:
         """
         Retorna True si alguno de los jugadores obtuvo 5 fijas en su ultimo intento.
         """
-        for intentos in self.intentos.values():
-            if intentos and intentos[-1][2] == 5:
-                return True
+       # for intentos in self.intentos.values():
+        #    if intentos and intentos[-1][2] == 5:
+         #       return True
         return self.finalizada
 
     def obtener_ganador(self) -> str:
         """
         Retorna el nombre del jugador que gano, o None si no hay ganador aun.
         """
-        for jugador, intentos in self.intentos.items():
-            if intentos and intentos[-1][2] == 5:
-                return jugador
+      #  for jugador, intentos in self.intentos.items():
+        #    if intentos and intentos[-1][2] == 5:
+          #      return jugador
         return self.ganador
     ### para puntuacion
     def obtener_puntuacion(self, jugador: str) -> int:

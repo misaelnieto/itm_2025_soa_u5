@@ -298,7 +298,7 @@ socket.addEventListener("message", (event) => {
  
   if (data.type === "game_over"){
     //Mostrar mensaje de ganador
-    msj.textContent = `¡Juego terminado! Ganador: ${data.ganador}`;
+    msj.textContent = `¡Juego terminado! Ganador: ${data.ganador} con ${data.puntuacion} puntos`;
     msj.style.color = 'blue';
 
     /// Deshabilitar inputs y botoenes para evitar mas jugadas
