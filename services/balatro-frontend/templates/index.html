@@ -37,29 +37,56 @@
         </div>
     </div>
     <div id="game-container">
-        <div class="player">
-            <span id="player-name"></span>
-        <div style="margin-bottom: 8px;">
-            <span>Total score: </span><strong><span id="player-score"></span></strong>
+        <div class="row">
+            <!-- Left column: player info -->
+            <div class="col" style="min-width: 300px; flex: 1;">
+                <div id="game-state">
+                    <div class="player">
+                        <span id="player-name"></span>
+                        <div style="margin-bottom: 8px;">
+                            <span>Total score: </span><strong><span id="player-score"></span></strong>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <span>Last play score: </span><strong><span id="last-score"></span></strong>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <span>Last hand: </span><strong><span id="last-hand"></span></strong>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <span>Last opponent score: </span><strong><span id="last-opponent-score"></span></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Right column: score/chips/multiplier -->
+            <div id="score-container" class="col">
+                <div id="score">Score: <span id="score-value"></span></div>
+                <div><span id="hand-type"></span></div>
+                <div>
+                    <span id="chips-value"></span>
+                    X
+                    <span id="multiplier-value"></span>
+                </div>
+            </div>
         </div>
-        <div style="margin-bottom: 8px;">
-            <span>Last play score: </span><strong><span id="last-score"></span></strong>
-        </div>
-        <div style="margin-bottom: 8px;">
-            <span>Last hand: </span><strong><span id="last-hand"></span></strong>
-        </div>
-        <div style="margin-bottom: 8px;">
-            <span>Last opponent score: </span><strong><span id="last-opponent-score"></span></strong>
-        </div>
+
 
         <center>
             <div class="container">
-                <div id="card-container">
-                    <!-- Card Container -->
-                </div>
+                <center>
+                    <div id="card-container">
+                        <!-- Card Container -->
+                    </div>
+                </center>
+
             </div>
-            <button id="play-hand-btn">PLAY</button>
-            <button id="discard-cards-btn">DISCARD</button>
+            <div>
+                <button id="play-hand-btn">Play Hand</button>
+                <button id="ranks-btn">Rank</button>
+                <button id="suits-btn">Suit</button>
+                <button id="discard-cards-btn">Discard</button>
+            </div>
+
         </center>
     </div>
 
@@ -74,13 +101,13 @@
     </div>
 
 
-    <a href="/juegos/balatro/leaderboardBalatro" class="leaderboard-button" title="Leaderboard">
-        <img src="https://cdn-icons-png.flaticon.com/512/2583/2583346.png">
+    <a id="leaderboard-button-img" href="/juegos/balatro/leaderboardBalatro" class="leaderboard-button" title="Leaderboard" hidden>
+        <img  src="https://cdn-icons-png.flaticon.com/512/2583/2583346.png">
     </a>
 
 </body>
-
-<script src="/juegos/balatro/static/js/player_cards.js"></script>
+<script type="module" src="/juegos/balatro/static/js/score_handler.js"></script>
+<script type="module" src="/juegos/balatro/static/js/player_cards.js"></script>
 <script src="/juegos/balatro/static/js/main.js"></script>
 
 

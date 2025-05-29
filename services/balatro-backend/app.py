@@ -24,8 +24,8 @@ socketio = SocketIO(app,
 game_state = GameState()
 
 
-first_player = None
-first_player_name = None
+waiting_sid = None
+waiting_name = None
 sessions = {}
 game_states = {}
 
@@ -36,40 +36,30 @@ logging.basicConfig(level=logging.INFO)
 
 @socketio.on('connect')
 def handle_connect(auth):
-    if auth is None:
-        auth = {}
-    user_name = auth.get('name')
-    logging.info(f"User connected: {user_name}")
-	
-    global first_player
-    global first_player_name
-    
-    #sid significa session id
+    global waiting_sid, waiting_name
     sid = request.sid
+    user_name = auth.get('name') if auth else None
+    logging.info(f"User connected: {user_name}")
 
-
-    if(first_player is None):
-        first_player = sid
-        first_player_name = auth.get('name')
-        print(f"{sid} is waiting someone to play with")
-
-        emit('message', {'message': 'We are matching you with someone else'})
-    
+    if waiting_sid is None:
+        waiting_sid = sid
+        waiting_name = user_name
+        emit('message', {'message': 'Waiting for another player...'})
     else:
-        print('There is a second player')
-        #Hay un jugador esperando, y como se esta conectando un nuevo jugador se debe de crear una sala para ambos
-        room_id = str(uuid.uuid4())  
-        socketio.server.enter_room(first_player, room_id)
-        socketio.server.enter_room(sid, room_id)
-
-        #Guardar la sesion
-        sessions[first_player] = room_id
+        room_id = str(uuid.uuid4())
+        # Only add the current sid to the room here
+        join_room(room_id, sid=sid)
+        # Tell both players to join the room
+        emit('start_match', {'room': room_id}, to=waiting_sid)
+        emit('start_match', {'room': room_id}, to=sid)
+        # Save sessions, etc.
+        sessions[waiting_sid] = room_id
         sessions[sid] = room_id
 
         # Crear un estado independiente por sala
         state = GameState()
-        state.p1_sid = first_player
-        state.p1_name = first_player_name
+        state.p1_sid = waiting_sid
+        state.p1_name = user_name
         state.p2_sid = sid
         state.p2_name = auth.get('name')
 
@@ -78,14 +68,19 @@ def handle_connect(auth):
         game_states[room_id] = state
 
         # Imprimir en el backend que se creo una nueva sala
-        print(f"{first_player} and {sid} were matched{room_id}")
+        print(f"{user_name} and {sid} were matched{room_id}")
 
         # Emitir el evento
-        emit('matched', { 'room': room_id, 'player_hand':state.p1_hand_handler.hand }, to=first_player)
-        emit('matched', { 'room': room_id, 'player_hand':state.p2_hand_handler.hand }, to=sid)
+        emit('matched', { 'room': room_id, 'player_hand':state.p1_hand_handler.hand }, to=state.p1_sid)
+        emit('matched', { 'room': room_id, 'player_hand':state.p2_hand_handler.hand }, to=state.p2_sid)
 
-        first_player = None
+        user_name = None
 
+@socketio.on('join_room')
+def on_join_room(data):
+    room_id = data['room']
+    sid = request.sid
+    join_room(room_id, sid=sid)
 
 @app.route('/play_hand', methods=['POST'])
 def play_hand():

@@ -47,16 +47,17 @@ def check_hand(played_cards):
     valid_played_cards = []
 
     # Royal Flush
-    if len(unique_suits) == 1 and sorted_ranks[0] == 'A' and is_consecutive(sorted_ranks):
+    if len(played_cards) >= 5 and len(unique_suits) == 1 and sorted_ranks[0] == 'A' and is_consecutive(sorted_ranks):
         valid_played_cards = played_cards
         print("Royal Flush:", valid_played_cards)
         return HandType.ROYAL_FLUSH, valid_played_cards
 
     # Straight Flush
-    if len(unique_suits) == 1 and is_consecutive(sorted_ranks):
+    if len(played_cards) >= 5 and len(unique_suits) == 1 and is_consecutive(sorted_ranks):
         valid_played_cards = played_cards
         print("Straight Flush:", valid_played_cards)
         return HandType.STRAIGHT_FLUSH, valid_played_cards
+
 
     # Four of a Kind
     four = next(((r, c) for r, c in rank_count_map.items() if c == 4), None)
@@ -75,13 +76,13 @@ def check_hand(played_cards):
         return HandType.FULL_HOUSE, valid_played_cards
 
     # Flush
-    if len(unique_suits) == 1:
+    if len(played_cards) >= 5 and len(unique_suits) == 1:
         valid_played_cards = played_cards
         print("Flush:", valid_played_cards)
         return HandType.FLUSH, valid_played_cards
 
     # Straight
-    if is_consecutive(sorted_ranks):
+    if len(played_cards) >= 5 and is_consecutive(sorted_ranks):
         valid_played_cards = played_cards
         print("Straight:", valid_played_cards)
         return HandType.STRAIGHT, valid_played_cards

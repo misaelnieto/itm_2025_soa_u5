@@ -1,5 +1,9 @@
+import { scoreHand } from './score_handler.js';
+
 let socket;
 let userName = null;
+let sortBy = 'rank'; // Default sort by rank
+
 const token = localStorage.getItem('access_token');
 
 function fetchUserName(){
@@ -65,7 +69,8 @@ function fetchUserName(){
             opponent.textContent = `It's player ${data.current_turn}'s turn`;
         });
         socket.on('game_over', (data) => {
-
+            let leaderboard = document.getElementById('leaderboard-button-img');
+            leaderboard.hidden = false;
             if (data.win == 0) {
                 image_final.src = lose;
             }
@@ -105,15 +110,11 @@ function fetchUserName(){
 
 
 let sid = null;
-// ... existing code ...
 let turn = 1;
 let proceed_playHand = false;
 let win = "https://media.istockphoto.com/id/1447471637/video/you-win-glitch-4k-video-animation-footage-pixel-message-design-glitch-effect.jpg?s=640x640&k=20&c=JGgJOzzgHAWu33tEMYl-yghunxslgkdZGDHbqCB8KNA=";
 let lose = "https://motionarray.imgix.net/motion-array-3081970-Ib6GvahUCf-high_0014.jpg?w=660&q=60&fit=max&auto=format"
 let tie = "https://media.tenor.com/wyfhYqF1tJIAAAAe/mark-wahlberg-wahlberg.png";
-
-
-
 
 
 let loadingScreen = document.getElementsByClassName('loadingScreen')[0];
@@ -125,17 +126,9 @@ let h2_final = document.getElementsByClassName('final-h2')[0];
 let leaderboard = document.getElementsByClassName('leaderboard-button')[0];
 
 
-
-
-
-let deck;
-let suits;
-let ranks;
-let availableIndices = []; // Move this outside the function
-let selectedCardsTags = []; // Html tag containt the cards
-let selectedCards = []; // String array containing the cards
-let validPlayedCards = [];
-let last_score;
+let availableIndices = []; 
+let selectedCardsTags = []; 
+let selectedCards = [];
 
 
 const cardRank = {
@@ -157,6 +150,7 @@ const cardRank = {
 
 // This functions is running at the beggin
 document.addEventListener('DOMContentLoaded', function () {
+    setupSortButtons();
     document.getElementById("play-hand-btn").addEventListener('click', async () => {
         await playHand();
     });
@@ -171,16 +165,35 @@ document.addEventListener('DOMContentLoaded', function () {
     window.last_score = 0
 
     fetchUserName();
-    
+    addDiscardCounter();
+    resetDiscards();
 
 });
+
+// Generic sort function
+function sortCards(cards, sortBy) {
+    if (sortBy === 'rank') {
+        return cards.slice().sort((a, b) => getCardRank(b) - getCardRank(a));
+    } else if (sortBy === 'suit') {
+        return cards.slice().sort((a, b) => {
+            const suitA = a.slice(-1);
+            const suitB = b.slice(-1);
+            if (suitA === suitB) {
+                return getCardRank(b) - getCardRank(a);
+            }
+            return suitA.localeCompare(suitB);
+        });
+    }
+    return cards;
+}
 
 // Creates the initial player's hand
 function loadCards() {
     // Initialize availableIndices once
     availableIndices = Array.from({ length: 52 }, (_, i) => i); // Reset deck to full state
-
-    window.playerHand.forEach((card) => {
+    document.getElementById('card-container').innerHTML = '';
+    const sortedHand = sortCards(window.playerHand, sortBy);
+    sortedHand.forEach((card) => {
         paintCard(card);
     });
 }
@@ -197,7 +210,7 @@ function paintCard(card) {
             style="
             background: url('/juegos/balatro/static/img/${card}.png') no-repeat center/cover">
             <div class="card-body a1">
-            <h5 class="card-title" style="color: transparent;">${card}</h5>
+            <h5 class="card-title invisible-text">${card}</h5>
             </div>
         </div>
         </div>`;
@@ -218,30 +231,39 @@ function paintCard(card) {
                     pokerCard.classList.add('selected');
                 }
             }
+
+            // Calculate and print score every time a card is selected
+            let selected = selectedCardsTags.map(tag => tag.textContent);
+            if(selected.length > 0) {
+                const [score, handType, validPlayedCards, chips, multiplier] = scoreHand(selected);
+                document.getElementById("score-value").textContent = score;
+                document.getElementById("hand-type").textContent = handType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+                document.getElementById("chips-value").textContent = chips;
+                document.getElementById("multiplier-value").textContent = multiplier;
+                console.log(`Selected hand: ${selected.join(', ')} | Type: ${handType} | Score: ${score} | Chips: ${chips} | Multiplier: ${multiplier}`);
+            } else {
+                ClearScoreSection();
+                console.log('No cards selected');
+            }
         });
     });
 }
 
+function ClearScoreSection() {
+    document.getElementById("score-value").textContent = '';
+    document.getElementById("hand-type").textContent = '';
+    document.getElementById("chips-value").textContent = '';
+    document.getElementById("multiplier-value").textContent = '';
+}
+
 async function playHand() {
     if (selectedCardsTags.length > 0) {
-
-        // Parses selectCards as an string
         extractCardsToString();
-
-        // Orders the card by the biggest rank to the smallets rank
-        // Example:  A A J 9 9 7 3 
         selectedCards.sort((a, b) => getCardRank(b) - getCardRank(a));
-
-
-
         await getScore(selectedCards);
-
-        // At the moment, the cards werent taken off from the player's hand, so
-        // if there's not the player's turn, nothing can happend
-
         if (proceed_playHand == true) {
-
-            // This part of the code verify all the selected cards and then remove that ones.
+            // Remove played cards from playerHand
+            window.playerHand = window.playerHand.filter(card => !selectedCards.includes(card));
             selectedCardsTags.forEach(selectedCard => {
                 document.querySelectorAll('.poker-card').forEach(cardElement => {
                     let cardTitle = cardElement.querySelector('.card-title').textContent.trim();
@@ -260,6 +282,7 @@ async function playHand() {
             console.log("termino draw");
             getGameState();
             console.log("termina gamestate");
+            ClearScoreSection();
             // The selected cars shouldnt be selected in the next turn
             selectedCardsTags = [];
             selectedCards = [];
@@ -272,10 +295,6 @@ async function playHand() {
                 stop_notification.style.display = 'none';
             }, 1500);
         }
-
-
-
-
     }
 }
 
@@ -283,11 +302,6 @@ async function playHand() {
 function getCardRank(card) {
     let rank = card.slice(0, -1); // remove the last character (suit)
     return cardRank[rank] || 0;
-}
-
-// Gets Card Suit
-function getCardSuit(card) {
-    return card.slice(-1); // Get the last character
 }
 
 // Extracts the card string from the HTML tag
@@ -310,20 +324,13 @@ async function getScore(playedCards) {
         })
     })
         .then(response => response.json())
-        .then(data => {
+        .then(function(data) {
 
             if (data.message) {
                 console.log(data.message);
                 proceed_playHand = false;   // The player can't do anything
             }
             else {
-                // console.log("Hand Played:", data.hand_played);
-                // console.log("Received:", data.received);
-                // console.log("Score:", data.score);
-                // console.log("Valid Cards:", data.valid_cards);
-
-                console.log('Si era tu turno weeee');
-                // Esto no aplica a los dos jugadores, solo al jugador actual, por eso no se pone en un socket
                 proceed_playHand = true;
             }
 
@@ -342,7 +349,10 @@ async function drawCardsForP1() {
         })
         .then(data => {
             console.log("Cartas regresadas" + data.drawn_cards);
-            data.drawn_cards.forEach(paintCard); // <- draw each new card
+            // Add new cards to playerHand
+            window.playerHand = window.playerHand.concat(data.drawn_cards);
+            // Resort and redraw the hand
+            loadCards();
         })
         .catch(error => {
             console.error('Error:', error);
@@ -371,12 +381,53 @@ function getGameState() {
         });
 }
 
+let discardCount = 0;
+const maxDiscards = 3;
+
+function updateDiscardUI() {
+    const discardBtn = document.getElementById('discard-cards-btn');
+    const counter = document.getElementById('discard-counter');
+    const left = maxDiscards - discardCount;
+    if (counter) {
+        counter.textContent = `Discards left: ${left}`;
+    }
+    if (discardBtn) {
+        if (left <= 0) {
+            discardBtn.disabled = true;
+            discardBtn.style.opacity = 0.5;
+            discardBtn.style.cursor = 'not-allowed';
+        } else {
+            discardBtn.disabled = false;
+            discardBtn.style.opacity = 1;
+            discardBtn.style.cursor = 'pointer';
+        }
+    }
+}
+
+function resetDiscards() {
+    discardCount = 0;
+    updateDiscardUI();
+}
+
+function addDiscardCounter() {
+    let container = document.getElementById('score-container');
+    if (container && !document.getElementById('discard-counter')) {
+        let counter = document.createElement('div');
+        counter.id = 'discard-counter';
+        counter.style.marginTop = '10px';
+        counter.style.fontSize = '1.1rem';
+        counter.style.color = '#fff';
+        container.appendChild(counter);
+    }
+    updateDiscardUI();
+}
+
 async function discardCards() {
-    if (selectedCardsTags.length > 0) {
+    if (selectedCardsTags.length > 0 && discardCount < maxDiscards) {
         extractCardsToString();
-
         selectedCards.sort((a, b) => getCardRank(b) - getCardRank(a));
-
+        // Remove discarded cards from playerHand
+        window.playerHand = window.playerHand.filter(card => !selectedCards.includes(card));
         selectedCardsTags.forEach(selectedCard => {
             document.querySelectorAll('.poker-card').forEach(cardElement => {
                 let cardTitle = cardElement.querySelector('.card-title').textContent.trim();
@@ -387,9 +438,11 @@ async function discardCards() {
         });
         await discardInAPI(selectedCards);
         await drawCardsForP1();
-
+        ClearScoreSection();
         selectedCardsTags = [];
         selectedCards = [];
+        discardCount++;
+        updateDiscardUI();
     }
 }
 
@@ -409,6 +462,24 @@ async function discardInAPI(cards) {
         const data = await response.json();
     } catch (error) {
         console.error("Error:", error);
+    }
+}
+
+// Add event listeners for sorting buttons
+function setupSortButtons() {
+    const rankBtn = document.getElementById('ranks-btn');
+    const suitBtn = document.getElementById('suits-btn');
+    if (rankBtn) {
+        rankBtn.addEventListener('click', () => {
+            sortBy = 'rank';
+            loadCards();
+        });
+    }
+    if (suitBtn) {
+        suitBtn.addEventListener('click', () => {
+            sortBy = 'suit';
+            loadCards();
+        });
     }
 }
 
