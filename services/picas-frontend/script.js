@@ -201,7 +201,7 @@ guessBtn.addEventListener('click', async () => {
     try {
     const estado = await obtenerEstadoPartida();
     if (estado.finalizada) {
-      msj.textContent = `¡Juego terminado! Ganador: ${estado.ganador} con ${estado.puntuacion} puntos`;
+      msj.textContent = `¡Juego terminado!`;
       msj.style.color = 'blue';
       numeroInputs.forEach(input => input.disabled = true);
       guessNums.forEach(input => input.disabled = true);
