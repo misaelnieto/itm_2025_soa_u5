@@ -34,12 +34,27 @@ game_states = {}
 
 logging.basicConfig(level=logging.INFO)
 
+@socketio.on('disconnect')
+def handle_disconnect():
+    global waiting_sid, waiting_name
+    sid = request.sid
+    if sid == waiting_sid:
+        waiting_sid = None
+        waiting_name = None
+    # Optionally: clean up sessions, game_states, etc. if needed
+
 @socketio.on('connect')
 def handle_connect(auth):
     global waiting_sid, waiting_name
     sid = request.sid
     user_name = auth.get('name') if auth else None
     logging.info(f"User connected: {user_name}")
+
+    # Check if waiting_sid is still connected
+    if waiting_sid is not None:
+        if not socketio.server.manager.is_connected(waiting_sid, '/'):  # default namespace
+            waiting_sid = None
+            waiting_name = None
 
     if waiting_sid is None:
         waiting_sid = sid
