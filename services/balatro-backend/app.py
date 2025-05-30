@@ -74,9 +74,9 @@ def handle_connect(auth):
         # Crear un estado independiente por sala
         state = GameState()
         state.p1_sid = waiting_sid
-        state.p1_name = user_name
+        state.p1_name = waiting_name
         state.p2_sid = sid
-        state.p2_name = auth.get('name')
+        state.p2_name = user_name
 
 
         # Guardar el estado 
