@@ -3,7 +3,7 @@ import { createClient, defaultPlugins } from "@hey-api/openapi-ts"
 
 const services = {
   usuarios: "../../openapi/usuarios.json",
-  // ajedrez: "../../openapi/ajedrez.json",
+  ajedrez: "../../openapi/ajedrez.json",
 }
 
 for (const [serviceName, serviceDefinition] of Object.entries(services)) {

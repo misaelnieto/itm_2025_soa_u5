@@ -1,7 +1,10 @@
-use confik::Configuration;
+use config::Config;
+use anyhow::Result;
 
-#[derive(Debug, Default, Configuration)]
-pub struct AjedrezConfig {
-    pub server_addr: String,
-    pub database_url: String,
+
+pub fn get_configuration() -> Result<Config>{
+    let cfg = Config::builder()
+        .add_source(config::Environment::with_prefix("AJEDREZ"))
+        .build()?;
+    Ok(cfg)
 }

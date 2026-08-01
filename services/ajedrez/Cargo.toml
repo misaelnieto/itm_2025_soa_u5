@@ -14,7 +14,6 @@ path = "src/bin/ajedrez_server.rs"
 [dependencies]
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4.5.34", features = ["cargo"] }
-confik = "0.13.0"
 diesel = { version = "2.2.8", features = ["sqlite", "uuid", "chrono", "returning_clauses_for_sqlite_3_35"] }
 dotenvy = "0.15.7"
 rocket = { version = "0.5.1", features = ["tls", "json", "uuid"] }
@@ -32,3 +31,4 @@ rusqlite = { version = "0.35.0", features = ["bundled"] }
 log = "0.4.27"
 env_logger = "0.11.8"
 reqwest = {version = "0.12.15", features = ["blocking"]}
+config = "0.15.11"

@@ -9,6 +9,9 @@ use diesel_migrations::{EmbeddedMigrations, MigrationHarness, embed_migrations};
 use tabled;
 use uuid::Uuid;
 
+use ajedrez_svc::config::get_configuration;
+
+
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
 const STYLES: styling::Styles = styling::Styles::styled()
@@ -18,7 +21,7 @@ const STYLES: styling::Styles = styling::Styles::styled()
     .placeholder(styling::AnsiColor::Cyan.on_default());
 
 fn main() {
-    let matches = Command::new("Ajedrez cli")
+    let mut cmd = Command::new("Ajedrez cli")
         .styles(STYLES)
         .version("0.1")
         .about("This is the Ajedrez command line utility")
@@ -66,12 +69,14 @@ fn main() {
         .subcommand(
             Command::new("dump_openapi")
                 .about("Imprime la cofiguracion de openapi en formato JSON a la consola."),
-        )
-        .get_matches();
+        );
+
+    let matches = cmd.get_matches();
 
     match matches.subcommand() {
-        Some(("config", _)) => {
-            println!("Configuraciones .....");
+        Some(("settings", _)) => {
+            let _cfg = get_configuration();
+            println!("{:?}", _cfg);
         }
         Some(("init", _)) => {
             let connection = &mut establish_connection();
@@ -110,6 +115,7 @@ fn main() {
             cmd_output_openapi();
         }
         _ => {
+            cmd.print_help();
             eprintln!("Unknown or missing subcommand. Use --help for usage information.");
         }
     }
